@@ -10,46 +10,9 @@ from .models import (
 )
 
 
-class AutocompleteWidget(forms.TextInput):
-    """Widget personalizado para campos de autocomplete"""
-    def __init__(self, autocomplete_type, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.autocomplete_type = autocomplete_type
-        
-    def render(self, name, value, attrs=None, renderer=None):
-        if attrs is None:
-            attrs = {}
-        # Preservar atributos existentes
-        attrs = attrs.copy()
-        attrs.update({
-            'data-autocomplete': self.autocomplete_type,
-            'data-url': f'/core/api/{self.autocomplete_type}/'
-        })
-        return super().render(name, value, attrs, renderer)
-
-
-class ForeignKeyAutocompleteWidget(forms.TextInput):
-    """Widget para ForeignKey com autocomplete usando Select2"""
-    def __init__(self, autocomplete_type, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.autocomplete_type = autocomplete_type
-        
-    def render(self, name, value, attrs=None, renderer=None):
-        if attrs is None:
-            attrs = {}
-        # Preservar atributos existentes
-        attrs = attrs.copy()
-        attrs.update({
-            'data-autocomplete': self.autocomplete_type,
-            'data-url': f'/core/api/{self.autocomplete_type}/',
-            'data-field-type': 'foreignkey'
-        })
-        return super().render(name, value, attrs, renderer)
-
-
 class OcorrenciaForm(ModelForm):
-    """Formulário principal para Ocorrencia com campos organizados em abas"""
-    
+    """Formulário principal para Ocorrencia com campos de autocomplete otimizados"""
+
     class Meta:
         model = Ocorrencia
         fields = '__all__'
@@ -59,10 +22,10 @@ class OcorrenciaForm(ModelForm):
             'data_notificacao': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'id_uf_notificacao': forms.Select(attrs={'class': 'form-select'}),
             'id_municipio_notificacao': forms.Select(attrs={'class': 'form-select'}),
-            'id_cnes': ForeignKeyAutocompleteWidget('estabelecimentos', attrs={'class': 'form-control', 'placeholder': 'Digite o CNES...'}),
+            'id_cnes': forms.Select(attrs={'class': 'form-control', 'data-autocomplete': 'estabelecimentos'}),
             'data_acidente': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'data_cadastro': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            
+
             # Aba 2: Dados do Paciente
             'nome_paciente': forms.TextInput(attrs={'class': 'form-control'}),
             'data_nascimento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
@@ -73,11 +36,11 @@ class OcorrenciaForm(ModelForm):
             'id_povo_tradicional': forms.Select(attrs={'class': 'form-select'}),
             'cartao_sus': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '15'}),
             'cpf': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '11'}),
-            'id_cbo': ForeignKeyAutocompleteWidget('cbo', attrs={'class': 'form-control', 'placeholder': 'Digite o CBO...'}),
+            'id_cbo': forms.Select(attrs={'class': 'form-control', 'data-autocomplete': 'cbo'}),
             'nome_mae': forms.TextInput(attrs={'class': 'form-control'}),
             'id_escolaridade': forms.Select(attrs={'class': 'form-select'}),
             'id_pais': forms.Select(attrs={'class': 'form-select'}),
-            
+
             # Aba 3: Endereço
             'id_uf_residencia': forms.Select(attrs={'class': 'form-select'}),
             'id_municipio_residencia': forms.Select(attrs={'class': 'form-select'}),
@@ -92,7 +55,7 @@ class OcorrenciaForm(ModelForm):
             'cep': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '10'}),
             'telefone': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '15'}),
             'id_zona': forms.Select(attrs={'class': 'form-select'}),
-            
+
             # Aba 4: Dados do Acidente
             'num_registro': forms.TextInput(attrs={'class': 'form-control'}),
             'tipo_motor': forms.TextInput(attrs={'class': 'form-control'}),
@@ -102,13 +65,13 @@ class OcorrenciaForm(ModelForm):
             'nome_condutor': forms.TextInput(attrs={'class': 'form-control'}),
             'telefone_condutor': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '15'}),
             'data_atendimento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'id_cid': ForeignKeyAutocompleteWidget('cid', attrs={'class': 'form-control', 'placeholder': 'Digite o CID...'}),
+            'id_cid': forms.Select(attrs={'class': 'form-control', 'data-autocomplete': 'cid'}),
             'id_tipo_escalpelamento': forms.Select(attrs={'class': 'form-select'}),
             'id_causa_acidente': forms.Select(attrs={'class': 'form-select'}),
             'causa_acidente_outros': forms.TextInput(attrs={'class': 'form-control'}),
             'info_atendimento': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'id_municipio_ocorrencia': forms.Select(attrs={'class': 'form-select'}),
-            
+
             # Aba 5: Transferência
             'transferencia_hospitalar': forms.Select(attrs={'class': 'form-select'}, choices=[('', 'Selecione...'), ('S', 'Sim'), ('N', 'Não')]),
             'data_transferencia': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
@@ -117,17 +80,31 @@ class OcorrenciaForm(ModelForm):
             'unidade_transferencia': forms.TextInput(attrs={'class': 'form-control'}),
             'id_tipo_transporte': forms.Select(attrs={'class': 'form-select'}),
             'data_cadastro_atendimento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            
+
             # Aba 6: Investigador
             'id_municipio_investigador': forms.Select(attrs={'class': 'form-select'}),
-            'id_cnes_invertigador': ForeignKeyAutocompleteWidget('estabelecimentos', attrs={'class': 'form-control', 'placeholder': 'Digite o CNES...'}),
+            'id_cnes_invertigador': forms.Select(attrs={'class': 'form-control', 'data-autocomplete': 'estabelecimentos'}),
             'nome_invertigador': forms.TextInput(attrs={'class': 'form-control'}),
-            'funcao_invertigador': AutocompleteWidget('cbo', attrs={'class': 'form-control', 'placeholder': 'Digite o CBO...'}),
+            'funcao_invertigador': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Digite o CBO...'}), # Mantido como TextInput
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
+        autocomplete_fields = [
+            'id_cnes', 'id_cbo', 'id_cid', 'id_cnes_invertigador'
+        ]
+
+        # Se o formulário for para uma instância existente,
+        # garantimos que o valor atual seja uma opção no select.
+        if self.instance.pk:
+            for field_name in autocomplete_fields:
+                field = self.fields.get(field_name)
+                if field:
+                    current_obj = getattr(self.instance, field_name)
+                    if current_obj:
+                        field.queryset = type(current_obj).objects.filter(pk=current_obj.pk)
+
         # Configurar campos obrigatórios
         self.fields['tipo_notificacao'].required = True
         self.fields['data_notificacao'].required = True
@@ -150,7 +127,7 @@ class EvolucaoTratamentoForm(ModelForm):
         fields = '__all__'
         widgets = {
             'ocorrencia': forms.HiddenInput(),
-            'id_unidade_atendimento': ForeignKeyAutocompleteWidget('estabelecimentos', attrs={'class': 'form-control', 'placeholder': 'Digite o CNES...'}),
+            'id_unidade_atendimento': forms.Select(attrs={'class': 'form-control', 'data-autocomplete': 'estabelecimentos'}),
             'data_entrada': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'outros_procedimentos': forms.TextInput(attrs={'class': 'form-control'}),
             'outros_complicacoes': forms.TextInput(attrs={'class': 'form-control'}),
@@ -163,9 +140,9 @@ class EvolucaoTratamentoForm(ModelForm):
             'data_encerramento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'evolucao': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'id_municipio_investigacao': forms.Select(attrs={'class': 'form-select'}),
-            'id_cnes_investigacao': ForeignKeyAutocompleteWidget('estabelecimentos', attrs={'class': 'form-control', 'placeholder': 'Digite o CNES...'}),
+            'id_cnes_investigacao': forms.Select(attrs={'class': 'form-control', 'data-autocomplete': 'estabelecimentos'}),
             'nome_investigador': forms.TextInput(attrs={'class': 'form-control'}),
-            'id_funcao_investigador': ForeignKeyAutocompleteWidget('cbo', attrs={'class': 'form-control', 'placeholder': 'Digite o CBO...'}),
+            'id_funcao_investigador': forms.Select(attrs={'class': 'form-control', 'data-autocomplete': 'cbo'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -174,7 +151,6 @@ class EvolucaoTratamentoForm(ModelForm):
         # Configurar campos obrigatórios
         self.fields['outros_complicacoes'].required = True
         self.fields['nome_investigador'].required = True
-
 
 # Formsets para relações Many-to-Many
 EvolucaoTratamentoComplicacaoFormSet = inlineformset_factory(

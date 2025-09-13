@@ -655,264 +655,75 @@
 </form>
 
 <script>
-$(document).ready(function() {
-    console.log('jQuery carregado, iniciando configuração...');
-    console.log('Select2 disponível:', typeof $.fn.select2 !== 'undefined');
-    
-    // Configurar CSRF token para AJAX
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    
-    const csrftoken = getCookie('csrftoken');
-    
-    // Configurar AJAX padrão
-    $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
-            if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
-                xhr.setRequestHeader("X-CSRFToken", csrftoken);
-            }
-        }
-    });
-    
-    // Inicializar Select2 para campos de seleção
-    $('.form-select').select2({
-        theme: 'bootstrap-5',
-        width: '100%'
-    });
-    
-    // Configurar autocomplete para estabelecimentos
-    console.log('Configurando autocomplete para estabelecimentos...');
-    console.log('Elementos encontrados:', $('[data-autocomplete="estabelecimentos"]').length);
-    $('[data-autocomplete="estabelecimentos"]').each(function() {
-        var $element = $(this);
-        console.log('Configurando elemento:', $element.attr('name'), $element.prop('tagName'));
-        var isForeignKey = $element.data('field-type') === 'foreignkey';
-        
-        $element.select2({
-        theme: 'bootstrap-5',
-        width: '100%',
-        ajax: {
-            url: '/core/api/estabelecimentos/',
-            dataType: 'json',
-            delay: 250,
-            data: function (params) {
-                return {
-                    q: params.term
-                };
-            },
-            processResults: function (data) {
-                return {
-                    results: data.results
-                };
-            },
-            cache: true,
-            error: function(xhr, status, error) {
-                console.error('Erro ao carregar estabelecimentos:', error);
-            }
-        },
-        minimumInputLength: 2,
-        placeholder: 'Digite para buscar...',
-        allowClear: true,
-        // Para campos ForeignKey, salvar o ID quando selecionar
-        templateResult: function(item) {
-            return item.text;
-        },
-        templateSelection: function(item) {
-            if (isForeignKey) {
-                // Salvar o ID no campo hidden ou no próprio campo
-                $element.data('selected-id', item.id);
-                return item.text;
-            }
-            return item.text;
-        }
+    $(document).ready(function() {
+        // Inicializa Select2 para campos de seleção padrão
+        $('select:not([data-autocomplete])').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
         });
-        
-        // Para campos ForeignKey, quando o valor mudar, salvar o ID
-        if (isForeignKey) {
-            $element.on('change', function() {
-                var selectedId = $element.data('selected-id');
-                if (selectedId) {
-                    // Criar um campo hidden para salvar o ID se não existir
-                    var hiddenFieldName = $element.attr('name');
-                    var $hiddenField = $('input[name="' + hiddenFieldName + '_id"]');
-                    if ($hiddenField.length === 0) {
-                        $hiddenField = $('<input type="hidden" name="' + hiddenFieldName + '_id">');
-                        $element.after($hiddenField);
-                    }
-                    $hiddenField.val(selectedId);
-                }
-            });
-        }
-    });
     
-    // Configurar autocomplete para CBO
-    console.log('Configurando autocomplete para CBO...');
-    console.log('Elementos encontrados:', $('[data-autocomplete="cbo"]').length);
-    $('[data-autocomplete="cbo"]').each(function() {
-        var $element = $(this);
-        console.log('Configurando elemento:', $element.attr('name'), $element.prop('tagName'));
-        var isForeignKey = $element.data('field-type') === 'foreignkey';
-        
-        $element.select2({
-        theme: 'bootstrap-5',
-        width: '100%',
-        ajax: {
-            url: '/core/api/cbo/',
-            dataType: 'json',
-            delay: 250,
-            data: function (params) {
-                return {
-                    q: params.term
-                };
-            },
-            processResults: function (data) {
-                return {
-                    results: data.results
-                };
-            },
-            cache: true,
-            error: function(xhr, status, error) {
-                console.error('Erro ao carregar CBO:', error);
-            }
-        },
-        minimumInputLength: 2,
-        placeholder: 'Digite para buscar...',
-        allowClear: true,
-        // Para campos ForeignKey, salvar o ID quando selecionar
-        templateResult: function(item) {
-            return item.text;
-        },
-        templateSelection: function(item) {
-            if (isForeignKey) {
-                // Salvar o ID no campo hidden ou no próprio campo
-                $element.data('selected-id', item.id);
-                return item.text;
-            }
-            return item.text;
-        }
-        });
-        
-        // Para campos ForeignKey, quando o valor mudar, salvar o ID
-        if (isForeignKey) {
-            $element.on('change', function() {
-                var selectedId = $element.data('selected-id');
-                if (selectedId) {
-                    // Criar um campo hidden para salvar o ID se não existir
-                    var hiddenFieldName = $element.attr('name');
-                    var $hiddenField = $('input[name="' + hiddenFieldName + '_id"]');
-                    if ($hiddenField.length === 0) {
-                        $hiddenField = $('<input type="hidden" name="' + hiddenFieldName + '_id">');
-                        $element.after($hiddenField);
-                    }
-                    $hiddenField.val(selectedId);
-                }
-            });
-        }
-    });
+        // Inicializa Select2 para campos de autocomplete
+        $('[data-autocomplete]').each(function() {
+            var $element = $(this);
+            var autocomplete_type = $element.data('autocomplete');
+            var url = '/core/api/' + autocomplete_type + '/';
     
-    // Configurar autocomplete para CID
-    console.log('Configurando autocomplete para CID...');
-    console.log('Elementos encontrados:', $('[data-autocomplete="cid"]').length);
-    $('[data-autocomplete="cid"]').each(function() {
-        var $element = $(this);
-        console.log('Configurando elemento:', $element.attr('name'), $element.prop('tagName'));
-        var isForeignKey = $element.data('field-type') === 'foreignkey';
-        
-        $element.select2({
-        theme: 'bootstrap-5',
-        width: '100%',
-        ajax: {
-            url: '/core/api/cid/',
-            dataType: 'json',
-            delay: 250,
-            data: function (params) {
-                return {
-                    q: params.term
-                };
-            },
-            processResults: function (data) {
-                return {
-                    results: data.results
-                };
-            },
-            cache: true,
-            error: function(xhr, status, error) {
-                console.error('Erro ao carregar CID:', error);
-            }
-        },
-        minimumInputLength: 2,
-        placeholder: 'Digite para buscar...',
-        allowClear: true,
-        // Para campos ForeignKey, salvar o ID quando selecionar
-        templateResult: function(item) {
-            return item.text;
-        },
-        templateSelection: function(item) {
-            if (isForeignKey) {
-                // Salvar o ID no campo hidden ou no próprio campo
-                $element.data('selected-id', item.id);
-                return item.text;
-            }
-            return item.text;
-        }
-        });
-        
-        // Para campos ForeignKey, quando o valor mudar, salvar o ID
-        if (isForeignKey) {
-            $element.on('change', function() {
-                var selectedId = $element.data('selected-id');
-                if (selectedId) {
-                    // Criar um campo hidden para salvar o ID se não existir
-                    var hiddenFieldName = $element.attr('name');
-                    var $hiddenField = $('input[name="' + hiddenFieldName + '_id"]');
-                    if ($hiddenField.length === 0) {
-                        $hiddenField = $('<input type="hidden" name="' + hiddenFieldName + '_id">');
-                        $element.after($hiddenField);
-                    }
-                    $hiddenField.val(selectedId);
-                }
-            });
-        }
-    });
-    
-    // Carregar municípios quando UF for selecionada
-    $('#id_uf_notificacao, #id_uf_residencia, #id_uf_transferencia').on('change', function() {
-        var ufId = $(this).val();
-        var municipioField = $(this).attr('id').replace('uf', 'municipio');
-        
-        if (ufId) {
-            $.ajax({
-                url: '/core/api/municipios/',
-                data: {
-                    'estado_id': ufId
+            $element.select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                ajax: {
+                    url: url,
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results
+                        };
+                    },
+                    cache: true
                 },
-                success: function(data) {
-                    var municipioSelect = $('#' + municipioField);
-                    municipioSelect.empty();
-                    municipioSelect.append('<option value="">Selecione...</option>');
-                    
-                    $.each(data.municipios, function(index, municipio) {
-                        municipioSelect.append('<option value="' + municipio.id + '">' + municipio.nome + '</option>');
-                    });
-                },
-                error: function(xhr, status, error) {
-                    console.error('Erro ao carregar municípios:', error);
-                }
+                placeholder: 'Digite para buscar...',
+                minimumInputLength: 2
             });
+        });
+    
+        // Função para carregar municípios dinamicamente
+        function loadMunicipios(ufId, target) {
+            if (ufId && target) {
+                $.ajax({
+                    url: '{% url "core:load_municipios" %}',
+                    data: { 'estado_id': ufId },
+                    success: function(data) {
+                        var municipioSelect = $(target);
+                        var currentVal = municipioSelect.val();
+                        municipioSelect.empty().append('<option value="">Selecione...</option>');
+                        $.each(data.municipios, function(index, municipio) {
+                            municipioSelect.append($('<option>', {
+                                value: municipio.id,
+                                text: municipio.nome
+                            }));
+                        });
+                        municipioSelect.val(currentVal).trigger('change');
+                    }
+                });
+            }
         }
+    
+        // Gatilho para carregar municípios ao mudar o estado
+        $('#id_uf_notificacao').on('change', function() {
+            loadMunicipios($(this).val(), '#id_municipio_notificacao');
+        });
+        $('#id_uf_residencia').on('change', function() {
+            loadMunicipios($(this).val(), '#id_municipio_residencia');
+        });
+        $('#id_uf_transferencia').on('change', function() {
+            loadMunicipios($(this).val(), '#id_municipio_transferencia');
+        });
     });
-});
-</script>
+    </script>
 {% endblock %}

@@ -98,19 +98,8 @@ class OcorrenciaCreateView(LoginRequiredMixin, CreateView):
         return context
     
     def form_valid(self, form):
-        # Processar campos ForeignKey com autocomplete
-        # Os IDs são enviados em campos hidden com sufixo _id
-        for field_name in ['id_cnes', 'id_cbo', 'id_cid', 'id_cnes_invertigador']:
-            hidden_field_name = f"{field_name}_id"
-            if hidden_field_name in self.request.POST:
-                field_id = self.request.POST.get(hidden_field_name)
-                if field_id:
-                    # Atualizar o campo ForeignKey com o ID correto
-                    form.instance.__dict__[field_name + '_id'] = field_id
-        
         messages.success(self.request, 'Ocorrência criada com sucesso!')
         return super().form_valid(form)
-
 
 class OcorrenciaUpdateView(LoginRequiredMixin, UpdateView):
     """Editar ocorrência existente"""
@@ -132,16 +121,6 @@ class OcorrenciaUpdateView(LoginRequiredMixin, UpdateView):
         return context
     
     def form_valid(self, form):
-        # Processar campos ForeignKey com autocomplete
-        # Os IDs são enviados em campos hidden com sufixo _id
-        for field_name in ['id_cnes', 'id_cbo', 'id_cid', 'id_cnes_invertigador']:
-            hidden_field_name = f"{field_name}_id"
-            if hidden_field_name in self.request.POST:
-                field_id = self.request.POST.get(hidden_field_name)
-                if field_id:
-                    # Atualizar o campo ForeignKey com o ID correto
-                    form.instance.__dict__[field_name + '_id'] = field_id
-        
         messages.success(self.request, 'Ocorrência atualizada com sucesso!')
         return super().form_valid(form)
 
