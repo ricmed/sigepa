@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Excluir Ocorrência - SIGEPA{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <h5 class="alert-heading">Atenção!</h5>
+                    <p>Você está prestes a excluir permanentemente a seguinte ocorrência:</p>
+                </div>
+                
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title">Dados da Ocorrência</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Registro:</strong> {{ object.num_registro }}<br>
+                                <strong>Paciente:</strong> {{ object.nome_paciente }}<br>
+                                <strong>Data da Notificação:</strong> {{ object.data_notificacao|date:"d/m/Y" }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Tipo:</strong> {{ object.tipo_notificacao.descricao }}<br>
+                                <strong>UF:</strong> {{ object.id_uf_notificacao.descricao }}<br>
+                                <strong>Município:</strong> {{ object.id_municipio_notificacao.nome_municipio }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-danger mt-3">
+                    <strong>Esta ação não pode ser desfeita!</strong><br>
+                    Todos os dados relacionados a esta ocorrência serão permanentemente removidos do sistema.
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'core:ocorrencia_detail' object.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Confirmar Exclusão
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

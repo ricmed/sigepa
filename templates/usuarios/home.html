@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - SIGEPA{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-body text-center">
+                <h1 class="card-title">Bem-vindo ao SIGEPA</h1>
+                <p class="card-text">Sistema Integrado de Gestão de Processos Administrativos</p>
+                
+                {% if user.is_authenticated %}
+                    <p class="text-muted">Olá, {{ user.first_name|default:user.username }}!</p>
+                    <a href="{% url 'usuarios:profile' %}" class="btn btn-primary">Ver Perfil</a>
+                {% else %}
+                    <p class="text-muted">Faça login ou registre-se para acessar o sistema.</p>
+                    <a href="{% url 'usuarios:login' %}" class="btn btn-primary me-2">Entrar</a>
+                    <a href="{% url 'usuarios:register' %}" class="btn btn-outline-primary">Registrar</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,918 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - SIGEPA{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ title }}</h1>
+    <a href="{% url 'core:ocorrencia_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Voltar
+    </a>
+</div>
+
+<form method="post" id="ocorrencia-form">
+    {% csrf_token %}
+    
+    <!-- Navegação das Abas -->
+    <ul class="nav nav-tabs" id="ocorrencia-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="notificacao-tab" data-bs-toggle="tab" 
+                    data-bs-target="#notificacao" type="button" role="tab">
+                Dados da Notificação
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="paciente-tab" data-bs-toggle="tab" 
+                    data-bs-target="#paciente" type="button" role="tab">
+                Dados do Paciente
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="endereco-tab" data-bs-toggle="tab" 
+                    data-bs-target="#endereco" type="button" role="tab">
+                Endereço
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="acidente-tab" data-bs-toggle="tab" 
+                    data-bs-target="#acidente" type="button" role="tab">
+                Dados do Acidente
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="transferencia-tab" data-bs-toggle="tab" 
+                    data-bs-target="#transferencia" type="button" role="tab">
+                Transferência
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="investigador-tab" data-bs-toggle="tab" 
+                    data-bs-target="#investigador" type="button" role="tab">
+                Investigador
+            </button>
+        </li>
+    </ul>
+
+    <!-- Conteúdo das Abas -->
+    <div class="tab-content" id="ocorrencia-tab-content">
+        <!-- Aba 1: Dados da Notificação -->
+        <div class="tab-pane fade show active" id="notificacao" role="tabpanel">
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.tipo_notificacao.id_for_label }}" class="form-label">
+                                Tipo de Notificação *
+                            </label>
+                            {{ form.tipo_notificacao }}
+                            {% if form.tipo_notificacao.errors %}
+                                <div class="text-danger">{{ form.tipo_notificacao.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.data_notificacao.id_for_label }}" class="form-label">
+                                Data da Notificação *
+                            </label>
+                            {{ form.data_notificacao }}
+                            {% if form.data_notificacao.errors %}
+                                <div class="text-danger">{{ form.data_notificacao.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.id_uf_notificacao.id_for_label }}" class="form-label">
+                                UF da Notificação *
+                            </label>
+                            {{ form.id_uf_notificacao }}
+                            {% if form.id_uf_notificacao.errors %}
+                                <div class="text-danger">{{ form.id_uf_notificacao.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.id_municipio_notificacao.id_for_label }}" class="form-label">
+                                Município da Notificação *
+                            </label>
+                            {{ form.id_municipio_notificacao }}
+                            {% if form.id_municipio_notificacao.errors %}
+                                <div class="text-danger">{{ form.id_municipio_notificacao.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.id_cnes.id_for_label }}" class="form-label">
+                                CNES *
+                            </label>
+                            {{ form.id_cnes }}
+                            {% if form.id_cnes.errors %}
+                                <div class="text-danger">{{ form.id_cnes.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.data_acidente.id_for_label }}" class="form-label">
+                                Data do Acidente
+                            </label>
+                            {{ form.data_acidente }}
+                            {% if form.data_acidente.errors %}
+                                <div class="text-danger">{{ form.data_acidente.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.data_cadastro.id_for_label }}" class="form-label">
+                                Data do Cadastro
+                            </label>
+                            {{ form.data_cadastro }}
+                            {% if form.data_cadastro.errors %}
+                                <div class="text-danger">{{ form.data_cadastro.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba 2: Dados do Paciente -->
+        <div class="tab-pane fade" id="paciente" role="tabpanel">
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.nome_paciente.id_for_label }}" class="form-label">
+                                Nome do Paciente *
+                            </label>
+                            {{ form.nome_paciente }}
+                            {% if form.nome_paciente.errors %}
+                                <div class="text-danger">{{ form.nome_paciente.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="{{ form.data_nascimento.id_for_label }}" class="form-label">
+                                Data de Nascimento
+                            </label>
+                            {{ form.data_nascimento }}
+                            {% if form.data_nascimento.errors %}
+                                <div class="text-danger">{{ form.data_nascimento.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="{{ form.idade.id_for_label }}" class="form-label">
+                                Idade
+                            </label>
+                            {{ form.idade }}
+                            {% if form.idade.errors %}
+                                <div class="text-danger">{{ form.idade.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="{{ form.id_sexo.id_for_label }}" class="form-label">
+                                Sexo *
+                            </label>
+                            {{ form.id_sexo }}
+                            {% if form.id_sexo.errors %}
+                                <div class="text-danger">{{ form.id_sexo.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="{{ form.id_tempo_gestacao.id_for_label }}" class="form-label">
+                                Tempo de Gestação *
+                            </label>
+                            {{ form.id_tempo_gestacao }}
+                            {% if form.id_tempo_gestacao.errors %}
+                                <div class="text-danger">{{ form.id_tempo_gestacao.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="{{ form.id_raca.id_for_label }}" class="form-label">
+                                Raça *
+                            </label>
+                            {{ form.id_raca }}
+                            {% if form.id_raca.errors %}
+                                <div class="text-danger">{{ form.id_raca.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="{{ form.id_povo_tradicional.id_for_label }}" class="form-label">
+                                Povo Tradicional
+                            </label>
+                            {{ form.id_povo_tradicional }}
+                            {% if form.id_povo_tradicional.errors %}
+                                <div class="text-danger">{{ form.id_povo_tradicional.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.cartao_sus.id_for_label }}" class="form-label">
+                                Cartão SUS
+                            </label>
+                            {{ form.cartao_sus }}
+                            {% if form.cartao_sus.errors %}
+                                <div class="text-danger">{{ form.cartao_sus.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.cpf.id_for_label }}" class="form-label">
+                                CPF
+                            </label>
+                            {{ form.cpf }}
+                            {% if form.cpf.errors %}
+                                <div class="text-danger">{{ form.cpf.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.id_cbo.id_for_label }}" class="form-label">
+                                CBO
+                            </label>
+                            {{ form.id_cbo }}
+                            {% if form.id_cbo.errors %}
+                                <div class="text-danger">{{ form.id_cbo.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.nome_mae.id_for_label }}" class="form-label">
+                                Nome da Mãe
+                            </label>
+                            {{ form.nome_mae }}
+                            {% if form.nome_mae.errors %}
+                                <div class="text-danger">{{ form.nome_mae.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="{{ form.id_escolaridade.id_for_label }}" class="form-label">
+                                Escolaridade
+                            </label>
+                            {{ form.id_escolaridade }}
+                            {% if form.id_escolaridade.errors %}
+                                <div class="text-danger">{{ form.id_escolaridade.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="{{ form.id_pais.id_for_label }}" class="form-label">
+                                País
+                            </label>
+                            {{ form.id_pais }}
+                            {% if form.id_pais.errors %}
+                                <div class="text-danger">{{ form.id_pais.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba 3: Endereço -->
+        <div class="tab-pane fade" id="endereco" role="tabpanel">
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="{{ form.id_uf_residencia.id_for_label }}" class="form-label">
+                                UF de Residência
+                            </label>
+                            {{ form.id_uf_residencia }}
+                            {% if form.id_uf_residencia.errors %}
+                                <div class="text-danger">{{ form.id_uf_residencia.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.id_municipio_residencia.id_for_label }}" class="form-label">
+                                Município de Residência
+                            </label>
+                            {{ form.id_municipio_residencia }}
+                            {% if form.id_municipio_residencia.errors %}
+                                <div class="text-danger">{{ form.id_municipio_residencia.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.id_zona.id_for_label }}" class="form-label">
+                                Zona
+                            </label>
+                            {{ form.id_zona }}
+                            {% if form.id_zona.errors %}
+                                <div class="text-danger">{{ form.id_zona.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.distrito.id_for_label }}" class="form-label">
+                                Distrito
+                            </label>
+                            {{ form.distrito }}
+                            {% if form.distrito.errors %}
+                                <div class="text-danger">{{ form.distrito.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.bairro.id_for_label }}" class="form-label">
+                                Bairro
+                            </label>
+                            {{ form.bairro }}
+                            {% if form.bairro.errors %}
+                                <div class="text-danger">{{ form.bairro.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <label for="{{ form.logradouro.id_for_label }}" class="form-label">
+                                Logradouro
+                            </label>
+                            {{ form.logradouro }}
+                            {% if form.logradouro.errors %}
+                                <div class="text-danger">{{ form.logradouro.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-2">
+                            <label for="{{ form.numero.id_for_label }}" class="form-label">
+                                Número
+                            </label>
+                            {{ form.numero }}
+                            {% if form.numero.errors %}
+                                <div class="text-danger">{{ form.numero.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-2">
+                            <label for="{{ form.cep.id_for_label }}" class="form-label">
+                                CEP
+                            </label>
+                            {{ form.cep }}
+                            {% if form.cep.errors %}
+                                <div class="text-danger">{{ form.cep.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.complemento.id_for_label }}" class="form-label">
+                                Complemento
+                            </label>
+                            {{ form.complemento }}
+                            {% if form.complemento.errors %}
+                                <div class="text-danger">{{ form.complemento.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.telefone.id_for_label }}" class="form-label">
+                                Telefone
+                            </label>
+                            {{ form.telefone }}
+                            {% if form.telefone.errors %}
+                                <div class="text-danger">{{ form.telefone.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.geo_campo1.id_for_label }}" class="form-label">
+                                Coordenada 1
+                            </label>
+                            {{ form.geo_campo1 }}
+                            {% if form.geo_campo1.errors %}
+                                <div class="text-danger">{{ form.geo_campo1.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.geo_campo2.id_for_label }}" class="form-label">
+                                Coordenada 2
+                            </label>
+                            {{ form.geo_campo2 }}
+                            {% if form.geo_campo2.errors %}
+                                <div class="text-danger">{{ form.geo_campo2.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.ponto_referencia.id_for_label }}" class="form-label">
+                                Ponto de Referência
+                            </label>
+                            {{ form.ponto_referencia }}
+                            {% if form.ponto_referencia.errors %}
+                                <div class="text-danger">{{ form.ponto_referencia.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba 4: Dados do Acidente -->
+        <div class="tab-pane fade" id="acidente" role="tabpanel">
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.num_registro.id_for_label }}" class="form-label">
+                                Número do Registro *
+                            </label>
+                            {{ form.num_registro }}
+                            {% if form.num_registro.errors %}
+                                <div class="text-danger">{{ form.num_registro.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.tipo_motor.id_for_label }}" class="form-label">
+                                Tipo do Motor
+                            </label>
+                            {{ form.tipo_motor }}
+                            {% if form.tipo_motor.errors %}
+                                <div class="text-danger">{{ form.tipo_motor.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.data_investigacao.id_for_label }}" class="form-label">
+                                Data da Investigação
+                            </label>
+                            {{ form.data_investigacao }}
+                            {% if form.data_investigacao.errors %}
+                                <div class="text-danger">{{ form.data_investigacao.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.data_atendimento.id_for_label }}" class="form-label">
+                                Data do Atendimento
+                            </label>
+                            {{ form.data_atendimento }}
+                            {% if form.data_atendimento.errors %}
+                                <div class="text-danger">{{ form.data_atendimento.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.nome_dono.id_for_label }}" class="form-label">
+                                Nome do Dono
+                            </label>
+                            {{ form.nome_dono }}
+                            {% if form.nome_dono.errors %}
+                                <div class="text-danger">{{ form.nome_dono.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.telefone_dono.id_for_label }}" class="form-label">
+                                Telefone do Dono
+                            </label>
+                            {{ form.telefone_dono }}
+                            {% if form.telefone_dono.errors %}
+                                <div class="text-danger">{{ form.telefone_dono.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.nome_condutor.id_for_label }}" class="form-label">
+                                Nome do Condutor
+                            </label>
+                            {{ form.nome_condutor }}
+                            {% if form.nome_condutor.errors %}
+                                <div class="text-danger">{{ form.nome_condutor.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.telefone_condutor.id_for_label }}" class="form-label">
+                                Telefone do Condutor
+                            </label>
+                            {{ form.telefone_condutor }}
+                            {% if form.telefone_condutor.errors %}
+                                <div class="text-danger">{{ form.telefone_condutor.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.id_cid.id_for_label }}" class="form-label">
+                                CID
+                            </label>
+                            {{ form.id_cid }}
+                            {% if form.id_cid.errors %}
+                                <div class="text-danger">{{ form.id_cid.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.id_tipo_escalpelamento.id_for_label }}" class="form-label">
+                                Tipo de Escalpelamento
+                            </label>
+                            {{ form.id_tipo_escalpelamento }}
+                            {% if form.id_tipo_escalpelamento.errors %}
+                                <div class="text-danger">{{ form.id_tipo_escalpelamento.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.id_causa_acidente.id_for_label }}" class="form-label">
+                                Causa do Acidente
+                            </label>
+                            {{ form.id_causa_acidente }}
+                            {% if form.id_causa_acidente.errors %}
+                                <div class="text-danger">{{ form.id_causa_acidente.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.causa_acidente_outros.id_for_label }}" class="form-label">
+                                Outras Causas
+                            </label>
+                            {{ form.causa_acidente_outros }}
+                            {% if form.causa_acidente_outros.errors %}
+                                <div class="text-danger">{{ form.causa_acidente_outros.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.id_municipio_ocorrencia.id_for_label }}" class="form-label">
+                                Município da Ocorrência
+                            </label>
+                            {{ form.id_municipio_ocorrencia }}
+                            {% if form.id_municipio_ocorrencia.errors %}
+                                <div class="text-danger">{{ form.id_municipio_ocorrencia.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.data_cadastro_atendimento.id_for_label }}" class="form-label">
+                                Data do Cadastro do Atendimento
+                            </label>
+                            {{ form.data_cadastro_atendimento }}
+                            {% if form.data_cadastro_atendimento.errors %}
+                                <div class="text-danger">{{ form.data_cadastro_atendimento.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label for="{{ form.info_atendimento.id_for_label }}" class="form-label">
+                                Informações do Atendimento
+                            </label>
+                            {{ form.info_atendimento }}
+                            {% if form.info_atendimento.errors %}
+                                <div class="text-danger">{{ form.info_atendimento.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba 5: Transferência -->
+        <div class="tab-pane fade" id="transferencia" role="tabpanel">
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.transferencia_hospitalar.id_for_label }}" class="form-label">
+                                Transferência Hospitalar
+                            </label>
+                            {{ form.transferencia_hospitalar }}
+                            {% if form.transferencia_hospitalar.errors %}
+                                <div class="text-danger">{{ form.transferencia_hospitalar.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.data_transferencia.id_for_label }}" class="form-label">
+                                Data da Transferência
+                            </label>
+                            {{ form.data_transferencia }}
+                            {% if form.data_transferencia.errors %}
+                                <div class="text-danger">{{ form.data_transferencia.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.id_uf_transferencia.id_for_label }}" class="form-label">
+                                UF da Transferência
+                            </label>
+                            {{ form.id_uf_transferencia }}
+                            {% if form.id_uf_transferencia.errors %}
+                                <div class="text-danger">{{ form.id_uf_transferencia.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.id_municipio_transferencia.id_for_label }}" class="form-label">
+                                Município da Transferência
+                            </label>
+                            {{ form.id_municipio_transferencia }}
+                            {% if form.id_municipio_transferencia.errors %}
+                                <div class="text-danger">{{ form.id_municipio_transferencia.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.id_tipo_transporte.id_for_label }}" class="form-label">
+                                Tipo de Transporte
+                            </label>
+                            {{ form.id_tipo_transporte }}
+                            {% if form.id_tipo_transporte.errors %}
+                                <div class="text-danger">{{ form.id_tipo_transporte.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label for="{{ form.unidade_transferencia.id_for_label }}" class="form-label">
+                                Unidade de Transferência
+                            </label>
+                            {{ form.unidade_transferencia }}
+                            {% if form.unidade_transferencia.errors %}
+                                <div class="text-danger">{{ form.unidade_transferencia.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba 6: Investigador -->
+        <div class="tab-pane fade" id="investigador" role="tabpanel">
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.id_municipio_investigador.id_for_label }}" class="form-label">
+                                Município do Investigador
+                            </label>
+                            {{ form.id_municipio_investigador }}
+                            {% if form.id_municipio_investigador.errors %}
+                                <div class="text-danger">{{ form.id_municipio_investigador.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.id_cnes_invertigador.id_for_label }}" class="form-label">
+                                CNES do Investigador
+                            </label>
+                            {{ form.id_cnes_invertigador }}
+                            {% if form.id_cnes_invertigador.errors %}
+                                <div class="text-danger">{{ form.id_cnes_invertigador.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.nome_invertigador.id_for_label }}" class="form-label">
+                                Nome do Investigador *
+                            </label>
+                            {{ form.nome_invertigador }}
+                            {% if form.nome_invertigador.errors %}
+                                <div class="text-danger">{{ form.nome_invertigador.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.funcao_invertigador.id_for_label }}" class="form-label">
+                                Função do Investigador
+                            </label>
+                            {{ form.funcao_invertigador }}
+                            {% if form.funcao_invertigador.errors %}
+                                <div class="text-danger">{{ form.funcao_invertigador.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botões de Ação -->
+    <div class="card mt-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'core:ocorrencia_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> {{ button_text }}
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+$(document).ready(function() {
+    console.log('jQuery carregado, iniciando configuração...');
+    console.log('Select2 disponível:', typeof $.fn.select2 !== 'undefined');
+    
+    // Configurar CSRF token para AJAX
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    const csrftoken = getCookie('csrftoken');
+    
+    // Configurar AJAX padrão
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+    
+    // Inicializar Select2 para campos de seleção
+    $('.form-select').select2({
+        theme: 'bootstrap-5',
+        width: '100%'
+    });
+    
+    // Configurar autocomplete para estabelecimentos
+    console.log('Configurando autocomplete para estabelecimentos...');
+    console.log('Elementos encontrados:', $('[data-autocomplete="estabelecimentos"]').length);
+    $('[data-autocomplete="estabelecimentos"]').each(function() {
+        var $element = $(this);
+        console.log('Configurando elemento:', $element.attr('name'), $element.prop('tagName'));
+        var isForeignKey = $element.data('field-type') === 'foreignkey';
+        
+        $element.select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        ajax: {
+            url: '/core/api/estabelecimentos/',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term
+                };
+            },
+            processResults: function (data) {
+                return {
+                    results: data.results
+                };
+            },
+            cache: true,
+            error: function(xhr, status, error) {
+                console.error('Erro ao carregar estabelecimentos:', error);
+            }
+        },
+        minimumInputLength: 2,
+        placeholder: 'Digite para buscar...',
+        allowClear: true,
+        // Para campos ForeignKey, salvar o ID quando selecionar
+        templateResult: function(item) {
+            return item.text;
+        },
+        templateSelection: function(item) {
+            if (isForeignKey) {
+                // Salvar o ID no campo hidden ou no próprio campo
+                $element.data('selected-id', item.id);
+                return item.text;
+            }
+            return item.text;
+        }
+        });
+        
+        // Para campos ForeignKey, quando o valor mudar, salvar o ID
+        if (isForeignKey) {
+            $element.on('change', function() {
+                var selectedId = $element.data('selected-id');
+                if (selectedId) {
+                    // Criar um campo hidden para salvar o ID se não existir
+                    var hiddenFieldName = $element.attr('name');
+                    var $hiddenField = $('input[name="' + hiddenFieldName + '_id"]');
+                    if ($hiddenField.length === 0) {
+                        $hiddenField = $('<input type="hidden" name="' + hiddenFieldName + '_id">');
+                        $element.after($hiddenField);
+                    }
+                    $hiddenField.val(selectedId);
+                }
+            });
+        }
+    });
+    
+    // Configurar autocomplete para CBO
+    console.log('Configurando autocomplete para CBO...');
+    console.log('Elementos encontrados:', $('[data-autocomplete="cbo"]').length);
+    $('[data-autocomplete="cbo"]').each(function() {
+        var $element = $(this);
+        console.log('Configurando elemento:', $element.attr('name'), $element.prop('tagName'));
+        var isForeignKey = $element.data('field-type') === 'foreignkey';
+        
+        $element.select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        ajax: {
+            url: '/core/api/cbo/',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term
+                };
+            },
+            processResults: function (data) {
+                return {
+                    results: data.results
+                };
+            },
+            cache: true,
+            error: function(xhr, status, error) {
+                console.error('Erro ao carregar CBO:', error);
+            }
+        },
+        minimumInputLength: 2,
+        placeholder: 'Digite para buscar...',
+        allowClear: true,
+        // Para campos ForeignKey, salvar o ID quando selecionar
+        templateResult: function(item) {
+            return item.text;
+        },
+        templateSelection: function(item) {
+            if (isForeignKey) {
+                // Salvar o ID no campo hidden ou no próprio campo
+                $element.data('selected-id', item.id);
+                return item.text;
+            }
+            return item.text;
+        }
+        });
+        
+        // Para campos ForeignKey, quando o valor mudar, salvar o ID
+        if (isForeignKey) {
+            $element.on('change', function() {
+                var selectedId = $element.data('selected-id');
+                if (selectedId) {
+                    // Criar um campo hidden para salvar o ID se não existir
+                    var hiddenFieldName = $element.attr('name');
+                    var $hiddenField = $('input[name="' + hiddenFieldName + '_id"]');
+                    if ($hiddenField.length === 0) {
+                        $hiddenField = $('<input type="hidden" name="' + hiddenFieldName + '_id">');
+                        $element.after($hiddenField);
+                    }
+                    $hiddenField.val(selectedId);
+                }
+            });
+        }
+    });
+    
+    // Configurar autocomplete para CID
+    console.log('Configurando autocomplete para CID...');
+    console.log('Elementos encontrados:', $('[data-autocomplete="cid"]').length);
+    $('[data-autocomplete="cid"]').each(function() {
+        var $element = $(this);
+        console.log('Configurando elemento:', $element.attr('name'), $element.prop('tagName'));
+        var isForeignKey = $element.data('field-type') === 'foreignkey';
+        
+        $element.select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        ajax: {
+            url: '/core/api/cid/',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term
+                };
+            },
+            processResults: function (data) {
+                return {
+                    results: data.results
+                };
+            },
+            cache: true,
+            error: function(xhr, status, error) {
+                console.error('Erro ao carregar CID:', error);
+            }
+        },
+        minimumInputLength: 2,
+        placeholder: 'Digite para buscar...',
+        allowClear: true,
+        // Para campos ForeignKey, salvar o ID quando selecionar
+        templateResult: function(item) {
+            return item.text;
+        },
+        templateSelection: function(item) {
+            if (isForeignKey) {
+                // Salvar o ID no campo hidden ou no próprio campo
+                $element.data('selected-id', item.id);
+                return item.text;
+            }
+            return item.text;
+        }
+        });
+        
+        // Para campos ForeignKey, quando o valor mudar, salvar o ID
+        if (isForeignKey) {
+            $element.on('change', function() {
+                var selectedId = $element.data('selected-id');
+                if (selectedId) {
+                    // Criar um campo hidden para salvar o ID se não existir
+                    var hiddenFieldName = $element.attr('name');
+                    var $hiddenField = $('input[name="' + hiddenFieldName + '_id"]');
+                    if ($hiddenField.length === 0) {
+                        $hiddenField = $('<input type="hidden" name="' + hiddenFieldName + '_id">');
+                        $element.after($hiddenField);
+                    }
+                    $hiddenField.val(selectedId);
+                }
+            });
+        }
+    });
+    
+    // Carregar municípios quando UF for selecionada
+    $('#id_uf_notificacao, #id_uf_residencia, #id_uf_transferencia').on('change', function() {
+        var ufId = $(this).val();
+        var municipioField = $(this).attr('id').replace('uf', 'municipio');
+        
+        if (ufId) {
+            $.ajax({
+                url: '/core/api/municipios/',
+                data: {
+                    'estado_id': ufId
+                },
+                success: function(data) {
+                    var municipioSelect = $('#' + municipioField);
+                    municipioSelect.empty();
+                    municipioSelect.append('<option value="">Selecione...</option>');
+                    
+                    $.each(data.municipios, function(index, municipio) {
+                        municipioSelect.append('<option value="' + municipio.id + '">' + municipio.nome + '</option>');
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Erro ao carregar municípios:', error);
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

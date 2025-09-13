@@ -1,0 +1,535 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalhes da Ocorrência - SIGEPA{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Detalhes da Ocorrência</h1>
+    <div>
+        <a href="{% url 'core:ocorrencia_update' ocorrencia.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Editar
+        </a>
+        <a href="{% url 'core:ocorrencia_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+</div>
+
+<!-- Navegação das Abas -->
+<ul class="nav nav-tabs" id="ocorrencia-tabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="notificacao-tab" data-bs-toggle="tab" 
+                data-bs-target="#notificacao" type="button" role="tab">
+            Dados da Notificação
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="paciente-tab" data-bs-toggle="tab" 
+                data-bs-target="#paciente" type="button" role="tab">
+            Dados do Paciente
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="endereco-tab" data-bs-toggle="tab" 
+                data-bs-target="#endereco" type="button" role="tab">
+            Endereço
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="acidente-tab" data-bs-toggle="tab" 
+                data-bs-target="#acidente" type="button" role="tab">
+            Dados do Acidente
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="transferencia-tab" data-bs-toggle="tab" 
+                data-bs-target="#transferencia" type="button" role="tab">
+            Transferência
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="investigador-tab" data-bs-toggle="tab" 
+                data-bs-target="#investigador" type="button" role="tab">
+            Investigador
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="evolucao-tab" data-bs-toggle="tab" 
+                data-bs-target="#evolucao" type="button" role="tab">
+            Evolução do Tratamento
+        </button>
+    </li>
+</ul>
+
+<!-- Conteúdo das Abas -->
+<div class="tab-content" id="ocorrencia-tab-content">
+    <!-- Aba 1: Dados da Notificação -->
+    <div class="tab-pane fade show active" id="notificacao" role="tabpanel">
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Dados da Notificação</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <strong>Tipo de Notificação:</strong>
+                        <p>{{ ocorrencia.tipo_notificacao.descricao }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Data da Notificação:</strong>
+                        <p>{{ ocorrencia.data_notificacao|date:"d/m/Y" }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>UF da Notificação:</strong>
+                        <p>{{ ocorrencia.id_uf_notificacao.descricao }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Município da Notificação:</strong>
+                        <p>{{ ocorrencia.id_municipio_notificacao.nome_municipio }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>CNES:</strong>
+                        <p>{{ ocorrencia.id_cnes.co_cnes }} - {{ ocorrencia.id_cnes.no_fantasia }}</p>
+                    </div>
+                    {% if ocorrencia.data_acidente %}
+                    <div class="col-md-6">
+                        <strong>Data do Acidente:</strong>
+                        <p>{{ ocorrencia.data_acidente|date:"d/m/Y" }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.data_cadastro %}
+                    <div class="col-md-6">
+                        <strong>Data do Cadastro:</strong>
+                        <p>{{ ocorrencia.data_cadastro|date:"d/m/Y" }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aba 2: Dados do Paciente -->
+    <div class="tab-pane fade" id="paciente" role="tabpanel">
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Dados do Paciente</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <strong>Nome do Paciente:</strong>
+                        <p>{{ ocorrencia.nome_paciente }}</p>
+                    </div>
+                    {% if ocorrencia.data_nascimento %}
+                    <div class="col-md-3">
+                        <strong>Data de Nascimento:</strong>
+                        <p>{{ ocorrencia.data_nascimento|date:"d/m/Y" }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.idade %}
+                    <div class="col-md-3">
+                        <strong>Idade:</strong>
+                        <p>{{ ocorrencia.idade }} anos</p>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-3">
+                        <strong>Sexo:</strong>
+                        <p>{{ ocorrencia.id_sexo.descricao }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Tempo de Gestação:</strong>
+                        <p>{{ ocorrencia.id_tempo_gestacao.descricao }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Raça:</strong>
+                        <p>{{ ocorrencia.id_raca.descricao }}</p>
+                    </div>
+                    {% if ocorrencia.id_povo_tradicional %}
+                    <div class="col-md-3">
+                        <strong>Povo Tradicional:</strong>
+                        <p>{{ ocorrencia.id_povo_tradicional.descricao }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.cartao_sus %}
+                    <div class="col-md-4">
+                        <strong>Cartão SUS:</strong>
+                        <p>{{ ocorrencia.cartao_sus }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.cpf %}
+                    <div class="col-md-4">
+                        <strong>CPF:</strong>
+                        <p>{{ ocorrencia.cpf }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.id_cbo %}
+                    <div class="col-md-4">
+                        <strong>CBO:</strong>
+                        <p>{{ ocorrencia.id_cbo.codigo }} - {{ ocorrencia.id_cbo.titulo }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.nome_mae %}
+                    <div class="col-md-6">
+                        <strong>Nome da Mãe:</strong>
+                        <p>{{ ocorrencia.nome_mae }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.id_escolaridade %}
+                    <div class="col-md-3">
+                        <strong>Escolaridade:</strong>
+                        <p>{{ ocorrencia.id_escolaridade.descricao }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.id_pais %}
+                    <div class="col-md-3">
+                        <strong>País:</strong>
+                        <p>{{ ocorrencia.id_pais.descricao }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aba 3: Endereço -->
+    <div class="tab-pane fade" id="endereco" role="tabpanel">
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Endereço</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    {% if ocorrencia.id_uf_residencia %}
+                    <div class="col-md-4">
+                        <strong>UF de Residência:</strong>
+                        <p>{{ ocorrencia.id_uf_residencia.descricao }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.id_municipio_residencia %}
+                    <div class="col-md-4">
+                        <strong>Município de Residência:</strong>
+                        <p>{{ ocorrencia.id_municipio_residencia.nome_municipio }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.id_zona %}
+                    <div class="col-md-4">
+                        <strong>Zona:</strong>
+                        <p>{{ ocorrencia.id_zona.descricao }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.distrito %}
+                    <div class="col-md-6">
+                        <strong>Distrito:</strong>
+                        <p>{{ ocorrencia.distrito }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.bairro %}
+                    <div class="col-md-6">
+                        <strong>Bairro:</strong>
+                        <p>{{ ocorrencia.bairro }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.logradouro %}
+                    <div class="col-md-8">
+                        <strong>Logradouro:</strong>
+                        <p>{{ ocorrencia.logradouro }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.numero %}
+                    <div class="col-md-2">
+                        <strong>Número:</strong>
+                        <p>{{ ocorrencia.numero }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.cep %}
+                    <div class="col-md-2">
+                        <strong>CEP:</strong>
+                        <p>{{ ocorrencia.cep }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.complemento %}
+                    <div class="col-md-6">
+                        <strong>Complemento:</strong>
+                        <p>{{ ocorrencia.complemento }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.telefone %}
+                    <div class="col-md-6">
+                        <strong>Telefone:</strong>
+                        <p>{{ ocorrencia.telefone }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.geo_campo1 %}
+                    <div class="col-md-4">
+                        <strong>Coordenada 1:</strong>
+                        <p>{{ ocorrencia.geo_campo1 }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.geo_campo2 %}
+                    <div class="col-md-4">
+                        <strong>Coordenada 2:</strong>
+                        <p>{{ ocorrencia.geo_campo2 }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.ponto_referencia %}
+                    <div class="col-md-4">
+                        <strong>Ponto de Referência:</strong>
+                        <p>{{ ocorrencia.ponto_referencia }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aba 4: Dados do Acidente -->
+    <div class="tab-pane fade" id="acidente" role="tabpanel">
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Dados do Acidente</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <strong>Número do Registro:</strong>
+                        <p>{{ ocorrencia.num_registro }}</p>
+                    </div>
+                    {% if ocorrencia.tipo_motor %}
+                    <div class="col-md-6">
+                        <strong>Tipo do Motor:</strong>
+                        <p>{{ ocorrencia.tipo_motor }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.data_investigacao %}
+                    <div class="col-md-6">
+                        <strong>Data da Investigação:</strong>
+                        <p>{{ ocorrencia.data_investigacao|date:"d/m/Y" }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.data_atendimento %}
+                    <div class="col-md-6">
+                        <strong>Data do Atendimento:</strong>
+                        <p>{{ ocorrencia.data_atendimento|date:"d/m/Y" }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.nome_dono %}
+                    <div class="col-md-6">
+                        <strong>Nome do Dono:</strong>
+                        <p>{{ ocorrencia.nome_dono }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.telefone_dono %}
+                    <div class="col-md-6">
+                        <strong>Telefone do Dono:</strong>
+                        <p>{{ ocorrencia.telefone_dono }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.nome_condutor %}
+                    <div class="col-md-6">
+                        <strong>Nome do Condutor:</strong>
+                        <p>{{ ocorrencia.nome_condutor }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.telefone_condutor %}
+                    <div class="col-md-6">
+                        <strong>Telefone do Condutor:</strong>
+                        <p>{{ ocorrencia.telefone_condutor }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.id_cid %}
+                    <div class="col-md-6">
+                        <strong>CID:</strong>
+                        <p>{{ ocorrencia.id_cid.cod_categoria }}.{{ ocorrencia.id_cid.cod_subcategoria }} - {{ ocorrencia.id_cid.desc_subcategoria }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.id_tipo_escalpelamento %}
+                    <div class="col-md-6">
+                        <strong>Tipo de Escalpelamento:</strong>
+                        <p>{{ ocorrencia.id_tipo_escalpelamento.descricao }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.id_causa_acidente %}
+                    <div class="col-md-6">
+                        <strong>Causa do Acidente:</strong>
+                        <p>{{ ocorrencia.id_causa_acidente.descricao }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.causa_acidente_outros %}
+                    <div class="col-md-6">
+                        <strong>Outras Causas:</strong>
+                        <p>{{ ocorrencia.causa_acidente_outros }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.id_municipio_ocorrencia %}
+                    <div class="col-md-6">
+                        <strong>Município da Ocorrência:</strong>
+                        <p>{{ ocorrencia.id_municipio_ocorrencia.nome_municipio }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.data_cadastro_atendimento %}
+                    <div class="col-md-6">
+                        <strong>Data do Cadastro do Atendimento:</strong>
+                        <p>{{ ocorrencia.data_cadastro_atendimento|date:"d/m/Y" }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.info_atendimento %}
+                    <div class="col-12">
+                        <strong>Informações do Atendimento:</strong>
+                        <p>{{ ocorrencia.info_atendimento }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aba 5: Transferência -->
+    <div class="tab-pane fade" id="transferencia" role="tabpanel">
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Transferência</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    {% if ocorrencia.transferencia_hospitalar %}
+                    <div class="col-md-6">
+                        <strong>Transferência Hospitalar:</strong>
+                        <p>{{ ocorrencia.transferencia_hospitalar }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.data_transferencia %}
+                    <div class="col-md-6">
+                        <strong>Data da Transferência:</strong>
+                        <p>{{ ocorrencia.data_transferencia|date:"d/m/Y" }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.id_uf_transferencia %}
+                    <div class="col-md-4">
+                        <strong>UF da Transferência:</strong>
+                        <p>{{ ocorrencia.id_uf_transferencia.descricao }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.id_municipio_transferencia %}
+                    <div class="col-md-4">
+                        <strong>Município da Transferência:</strong>
+                        <p>{{ ocorrencia.id_municipio_transferencia.nome_municipio }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.id_tipo_transporte %}
+                    <div class="col-md-4">
+                        <strong>Tipo de Transporte:</strong>
+                        <p>{{ ocorrencia.id_tipo_transporte.descricao }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.unidade_transferencia %}
+                    <div class="col-12">
+                        <strong>Unidade de Transferência:</strong>
+                        <p>{{ ocorrencia.unidade_transferencia }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aba 6: Investigador -->
+    <div class="tab-pane fade" id="investigador" role="tabpanel">
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Investigador</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    {% if ocorrencia.id_municipio_investigador %}
+                    <div class="col-md-6">
+                        <strong>Município do Investigador:</strong>
+                        <p>{{ ocorrencia.id_municipio_investigador.nome_municipio }}</p>
+                    </div>
+                    {% endif %}
+                    {% if ocorrencia.id_cnes_invertigador %}
+                    <div class="col-md-6">
+                        <strong>CNES do Investigador:</strong>
+                        <p>{{ ocorrencia.id_cnes_invertigador.co_cnes }} - {{ ocorrencia.id_cnes_invertigador.no_fantasia }}</p>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-6">
+                        <strong>Nome do Investigador:</strong>
+                        <p>{{ ocorrencia.nome_invertigador }}</p>
+                    </div>
+                    {% if ocorrencia.funcao_invertigador %}
+                    <div class="col-md-6">
+                        <strong>Função do Investigador:</strong>
+                        <p>{{ ocorrencia.funcao_invertigador }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aba 7: Evolução do Tratamento -->
+    <div class="tab-pane fade" id="evolucao" role="tabpanel">
+        <div class="card mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Evolução do Tratamento</h5>
+                <a href="{% url 'core:evolucao_tratamento_create' %}?ocorrencia={{ ocorrencia.pk }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus"></i> Nova Evolução
+                </a>
+            </div>
+            <div class="card-body">
+                {% if ocorrencia.evolucaotratamento_set.all %}
+                    {% for evolucao in ocorrencia.evolucaotratamento_set.all %}
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="mb-0">Evolução #{{ forloop.counter }}</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    {% if evolucao.data_entrada %}
+                                    <div class="col-md-6">
+                                        <strong>Data de Entrada:</strong>
+                                        <p>{{ evolucao.data_entrada|date:"d/m/Y" }}</p>
+                                    </div>
+                                    {% endif %}
+                                    {% if evolucao.id_unidade_atendimento %}
+                                    <div class="col-md-6">
+                                        <strong>Unidade de Atendimento:</strong>
+                                        <p>{{ evolucao.id_unidade_atendimento.co_cnes }} - {{ evolucao.id_unidade_atendimento.no_fantasia }}</p>
+                                    </div>
+                                    {% endif %}
+                                    {% if evolucao.id_regime_atendimento %}
+                                    <div class="col-md-6">
+                                        <strong>Regime de Atendimento:</strong>
+                                        <p>{{ evolucao.id_regime_atendimento.descricao }}</p>
+                                    </div>
+                                    {% endif %}
+                                    {% if evolucao.id_evolucao_caso %}
+                                    <div class="col-md-6">
+                                        <strong>Evolução do Caso:</strong>
+                                        <p>{{ evolucao.id_evolucao_caso.descricao }}</p>
+                                    </div>
+                                    {% endif %}
+                                    {% if evolucao.evolucao %}
+                                    <div class="col-12">
+                                        <strong>Evolução:</strong>
+                                        <p>{{ evolucao.evolucao }}</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">Nenhuma evolução do tratamento registrada.</p>
+                        <a href="{% url 'core:evolucao_tratamento_create' %}?ocorrencia={{ ocorrencia.pk }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Nova Evolução
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
