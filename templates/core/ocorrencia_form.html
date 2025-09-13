@@ -14,7 +14,6 @@
 <form method="post" id="ocorrencia-form">
     {% csrf_token %}
     
-    <!-- Navegação das Abas -->
     <ul class="nav nav-tabs" id="ocorrencia-tabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="notificacao-tab" data-bs-toggle="tab" 
@@ -54,9 +53,7 @@
         </li>
     </ul>
 
-    <!-- Conteúdo das Abas -->
     <div class="tab-content" id="ocorrencia-tab-content">
-        <!-- Aba 1: Dados da Notificação -->
         <div class="tab-pane fade show active" id="notificacao" role="tabpanel">
             <div class="card mt-3">
                 <div class="card-body">
@@ -129,7 +126,6 @@
             </div>
         </div>
 
-        <!-- Aba 2: Dados do Paciente -->
         <div class="tab-pane fade" id="paciente" role="tabpanel">
             <div class="card mt-3">
                 <div class="card-body">
@@ -256,7 +252,6 @@
             </div>
         </div>
 
-        <!-- Aba 3: Endereço -->
         <div class="tab-pane fade" id="endereco" role="tabpanel">
             <div class="card mt-3">
                 <div class="card-body">
@@ -383,7 +378,6 @@
             </div>
         </div>
 
-        <!-- Aba 4: Dados do Acidente -->
         <div class="tab-pane fade" id="acidente" role="tabpanel">
             <div class="card mt-3">
                 <div class="card-body">
@@ -528,7 +522,6 @@
             </div>
         </div>
 
-        <!-- Aba 5: Transferência -->
         <div class="tab-pane fade" id="transferencia" role="tabpanel">
             <div class="card mt-3">
                 <div class="card-body">
@@ -592,7 +585,6 @@
             </div>
         </div>
 
-        <!-- Aba 6: Investigador -->
         <div class="tab-pane fade" id="investigador" role="tabpanel">
             <div class="card mt-3">
                 <div class="card-body">
@@ -639,7 +631,6 @@
         </div>
     </div>
 
-    <!-- Botões de Ação -->
     <div class="card mt-3">
         <div class="card-body">
             <div class="d-flex justify-content-between">
@@ -657,13 +648,13 @@
 <script>
     $(document).ready(function() {
         // Inicializa Select2 para campos de seleção padrão
-        $('select:not([data-autocomplete])').select2({
+        $('form select:not([data-autocomplete])').select2({
             theme: 'bootstrap-5',
             width: '100%'
         });
     
         // Inicializa Select2 para campos de autocomplete
-        $('[data-autocomplete]').each(function() {
+        $('select[data-autocomplete]').each(function() {
             var $element = $(this);
             var autocomplete_type = $element.data('autocomplete');
             var url = '/core/api/' + autocomplete_type + '/';
@@ -677,12 +668,17 @@
                     delay: 250,
                     data: function (params) {
                         return {
-                            q: params.term
+                            q: params.term, // termo de busca
+                            page: params.page
                         };
                     },
-                    processResults: function (data) {
+                    processResults: function (data, params) {
+                        params.page = params.page || 1;
                         return {
-                            results: data.results
+                            results: data.results,
+                            pagination: {
+                                more: (params.page * 10) < data.count_filtered
+                            }
                         };
                     },
                     cache: true

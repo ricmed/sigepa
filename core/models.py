@@ -212,7 +212,7 @@ class Ocorrencia(models.Model):
     id_municipio_investigador = models.ForeignKey(Municipios, models.DO_NOTHING, db_column='id_municipio_investigador', related_name='ocorrencia_id_municipio_investigador_set', blank=True, null=True)
     id_cnes_invertigador = models.ForeignKey(Estabelecimentos, models.DO_NOTHING, db_column='id_cnes_invertigador', related_name='ocorrencia_id_cnes_invertigador_set', blank=True, null=True)
     nome_invertigador = models.CharField(max_length=150)
-    funcao_invertigador = models.IntegerField(blank=True, null=True)
+    funcao_invertigador = models.ForeignKey(Cbo, models.DO_NOTHING, db_column='funcao_invertigador', blank=True, null=True, related_name='ocorrencia_funcao_invertigador_set')
 
     class Meta:
         managed = False

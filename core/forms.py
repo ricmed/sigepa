@@ -85,25 +85,26 @@ class OcorrenciaForm(ModelForm):
             'id_municipio_investigador': forms.Select(attrs={'class': 'form-select'}),
             'id_cnes_invertigador': forms.Select(attrs={'class': 'form-control', 'data-autocomplete': 'estabelecimentos'}),
             'nome_invertigador': forms.TextInput(attrs={'class': 'form-control'}),
-            'funcao_invertigador': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Digite o CBO...'}), # Mantido como TextInput
+            'funcao_invertigador': forms.Select(attrs={'class': 'form-control', 'data-autocomplete': 'cbo'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        autocomplete_fields = [
-            'id_cnes', 'id_cbo', 'id_cid', 'id_cnes_invertigador'
-        ]
+        autocomplete_field_map = {
+            'id_cnes': Estabelecimentos,
+            'id_cbo': Cbo,
+            'id_cid': Cid,
+            'id_cnes_invertigador': Estabelecimentos,
+            'funcao_invertigador': Cbo,
+        }
 
-        # Se o formulário for para uma instância existente,
-        # garantimos que o valor atual seja uma opção no select.
-        if self.instance.pk:
-            for field_name in autocomplete_fields:
-                field = self.fields.get(field_name)
-                if field:
-                    current_obj = getattr(self.instance, field_name)
-                    if current_obj:
-                        field.queryset = type(current_obj).objects.filter(pk=current_obj.pk)
+        for field_name, model in autocomplete_field_map.items():
+            if field_name in self.fields:
+                if self.instance.pk and getattr(self.instance, field_name):
+                    self.fields[field_name].queryset = model.objects.filter(pk=getattr(self.instance, field_name).pk)
+                else:
+                    self.fields[field_name].queryset = model.objects.none()
 
         # Configurar campos obrigatórios
         self.fields['tipo_notificacao'].required = True
