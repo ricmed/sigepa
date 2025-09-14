@@ -1,25 +1,385 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Home - SIGEPA{% endblock %}
+{% block title %}Dashboard - SIGEPA{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8 mx-auto">
-        <div class="card">
-            <div class="card-body text-center">
-                <h1 class="card-title">Bem-vindo ao SIGEPA</h1>
-                <p class="card-text">Sistema Integrado de Gestão de Processos Administrativos</p>
-                
-                {% if user.is_authenticated %}
-                    <p class="text-muted">Olá, {{ user.first_name|default:user.username }}!</p>
-                    <a href="{% url 'usuarios:profile' %}" class="btn btn-primary">Ver Perfil</a>
-                {% else %}
-                    <p class="text-muted">Faça login ou registre-se para acessar o sistema.</p>
-                    <a href="{% url 'usuarios:login' %}" class="btn btn-primary me-2">Entrar</a>
-                    <a href="{% url 'usuarios:register' %}" class="btn btn-outline-primary">Registrar</a>
-                {% endif %}
+{% if user.is_authenticated %}
+    <!-- Hero Section -->
+    <div class="hero-background py-5 mb-5">
+        <div class="container hero-content">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 text-white fw-bold mb-3">
+                        <i class="fas fa-shield-alt me-3"></i>
+                        Sistema de Gerenciamento de Escalpelamentos
+                    </h1>
+                    <p class="lead text-white mb-4">
+                        Bem-vindo, <strong>{{ user.first_name|default:user.username }}</strong>! 
+                        Gerencie ocorrências de escalpelamentos de forma eficiente e segura.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="{% url 'core:ocorrencia_create' %}" class="btn btn-light btn-lg">
+                            <i class="fas fa-plus me-2"></i>Nova Ocorrência
+                        </a>
+                        <a href="{% url 'core:ocorrencia_list' %}" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-list me-2"></i>Ver Todas
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <img src="{% static 'identidade-visual/sigepa1.png' %}" alt="SIGEPA" class="img-fluid" style="max-height: 200px;">
+                </div>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- Estatísticas Principais -->
+    <div class="row mb-5">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stats-card">
+                <div class="stats-number">{{ total_ocorrencias }}</div>
+                <div class="stats-label">Total de Ocorrências</div>
+                <i class="fas fa-clipboard-list fa-2x text-primary mt-3"></i>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stats-card">
+                <div class="stats-number">{{ ocorrencias_mes }}</div>
+                <div class="stats-label">Este Mês</div>
+                <i class="fas fa-calendar-alt fa-2x text-success mt-3"></i>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stats-card">
+                <div class="stats-number">{{ municipios_atendidos }}</div>
+                <div class="stats-label">Municípios Atendidos</div>
+                <i class="fas fa-map-marker-alt fa-2x text-warning mt-3"></i>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stats-card">
+                <div class="stats-number">{{ estabelecimentos_ativos }}</div>
+                <div class="stats-label">Estabelecimentos</div>
+                <i class="fas fa-hospital fa-2x text-info mt-3"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos e Análises -->
+    <div class="row mb-5">
+        <!-- Gráfico de Ocorrências por Mês -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Ocorrências por Mês (Últimos 12 meses)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="ocorrenciasChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Distribuição por UF -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Distribuição por UF
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="ufChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabelas de Dados Recentes -->
+    <div class="row">
+        <!-- Ocorrências Recentes -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock me-2"></i>
+                        Ocorrências Recentes
+                    </h5>
+                    <a href="{% url 'core:ocorrencia_list' %}" class="btn btn-sm btn-outline-primary">
+                        Ver Todas
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if ocorrencias_recentes %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Registro</th>
+                                        <th>Paciente</th>
+                                        <th>Data</th>
+                                        <th>UF</th>
+                                        <th>Município</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ocorrencia in ocorrencias_recentes %}
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-primary">{{ ocorrencia.num_registro }}</span>
+                                            </td>
+                                            <td>{{ ocorrencia.nome_paciente }}</td>
+                                            <td>{{ ocorrencia.data_notificacao|date:"d/m/Y" }}</td>
+                                            <td>{{ ocorrencia.id_uf_notificacao.descricao }}</td>
+                                            <td>{{ ocorrencia.id_municipio_notificacao.nome_municipio }}</td>
+                                            <td>
+                                                <a href="{% url 'core:ocorrencia_detail' ocorrencia.pk %}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Nenhuma ocorrência encontrada</h5>
+                            <p class="text-muted">Comece criando uma nova ocorrência.</p>
+                            <a href="{% url 'core:ocorrencia_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Nova Ocorrência
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumo por Tipo de Escalpelamento -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Tipos de Escalpelamento
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if tipos_escalpelamento %}
+                        {% for tipo in tipos_escalpelamento %}
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <div class="fw-semibold">{{ tipo.descricao }}</div>
+                                    <small class="text-muted">{{ tipo.total }} ocorrências</small>
+                                </div>
+                                <div class="progress" style="width: 100px; height: 8px;">
+                                    <div class="progress-bar bg-primary" 
+                                         style="width: {{ tipo.percentual }}%"></div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-chart-bar fa-2x text-muted mb-3"></i>
+                            <p class="text-muted">Nenhum dado disponível</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações Rápidas -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>
+                        Ações Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:ocorrencia_create' %}" class="btn btn-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4">
+                                <i class="fas fa-plus fa-2x mb-2"></i>
+                                <span>Nova Ocorrência</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:ocorrencia_list' %}" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4">
+                                <i class="fas fa-list fa-2x mb-2"></i>
+                                <span>Listar Ocorrências</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'usuarios:profile' %}" class="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4">
+                                <i class="fas fa-user fa-2x mb-2"></i>
+                                <span>Meu Perfil</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4" onclick="window.print()">
+                                <i class="fas fa-print fa-2x mb-2"></i>
+                                <span>Imprimir Relatório</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% else %}
+    <!-- Página para usuários não autenticados -->
+    <div class="hero-background py-5">
+        <div class="container hero-content">
+            <div class="row justify-content-center text-center">
+                <div class="col-lg-8">
+                    <img src="{% static 'identidade-visual/sigepa2.png' %}" alt="SIGEPA" class="img-fluid mb-4" style="max-height: 150px;">
+                    <h1 class="display-4 text-white fw-bold mb-4">
+                        Sistema de Gerenciamento de Escalpelamentos
+                    </h1>
+                    <p class="lead text-white mb-5">
+                        Plataforma institucional para gestão eficiente de ocorrências de escalpelamentos 
+                        na região amazônica. Acesso seguro e controle total dos dados.
+                    </p>
+                    <div class="d-flex justify-content-center gap-4">
+                        <a href="{% url 'usuarios:login' %}" class="btn btn-light btn-lg px-5">
+                            <i class="fas fa-sign-in-alt me-2"></i>Entrar no Sistema
+                        </a>
+                        <a href="{% url 'usuarios:register' %}" class="btn btn-outline-light btn-lg px-5">
+                            <i class="fas fa-user-plus me-2"></i>Criar Conta
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Características do Sistema -->
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">Segurança</h5>
+                        <p class="card-text">Sistema seguro com autenticação robusta e criptografia de dados sensíveis.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                        <h5 class="card-title">Relatórios</h5>
+                        <p class="card-text">Dashboards interativos e relatórios detalhados para análise de dados.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="fas fa-mobile-alt fa-3x text-info mb-3"></i>
+                        <h5 class="card-title">Responsivo</h5>
+                        <p class="card-text">Interface adaptável para desktop, tablet e dispositivos móveis.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if user.is_authenticated %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gráfico de Ocorrências por Mês
+    const ocorrenciasCtx = document.getElementById('ocorrenciasChart').getContext('2d');
+    new Chart(ocorrenciasCtx, {
+        type: 'line',
+        data: {
+            labels: {{ meses|safe }},
+            datasets: [{
+                label: 'Ocorrências',
+                data: {{ dados_mensais|safe }},
+                borderColor: '#1e3a8a',
+                backgroundColor: 'rgba(30, 58, 138, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                }
+            }
+        }
+    });
+
+    // Gráfico de Distribuição por UF
+    const ufCtx = document.getElementById('ufChart').getContext('2d');
+    new Chart(ufCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ ufs_labels|safe }},
+            datasets: [{
+                data: {{ ufs_data|safe }},
+                backgroundColor: [
+                    '#1e3a8a',
+                    '#3b82f6',
+                    '#60a5fa',
+                    '#93c5fd',
+                    '#dbeafe',
+                    '#1d4ed8',
+                    '#1e40af',
+                    '#1e3a8a'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
 {% endblock %}

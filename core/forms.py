@@ -22,7 +22,7 @@ class OcorrenciaForm(ModelForm):
             'data_notificacao': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'id_uf_notificacao': forms.Select(attrs={'class': 'form-select'}),
             'id_municipio_notificacao': forms.Select(attrs={'class': 'form-select'}),
-            'id_cnes': forms.Select(attrs={'class': 'form-control', 'data-autocomplete': 'estabelecimentos'}),
+            'id_cnes': forms.Select(attrs={'class': 'form-control'}),
             'data_acidente': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'data_cadastro': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
 
@@ -36,7 +36,7 @@ class OcorrenciaForm(ModelForm):
             'id_povo_tradicional': forms.Select(attrs={'class': 'form-select'}),
             'cartao_sus': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '15'}),
             'cpf': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '11'}),
-            'id_cbo': forms.Select(attrs={'class': 'form-control', 'data-autocomplete': 'cbo'}),
+            'id_cbo': forms.Select(attrs={'class': 'form-control'}),
             'nome_mae': forms.TextInput(attrs={'class': 'form-control'}),
             'id_escolaridade': forms.Select(attrs={'class': 'form-select'}),
             'id_pais': forms.Select(attrs={'class': 'form-select'}),
@@ -65,7 +65,7 @@ class OcorrenciaForm(ModelForm):
             'nome_condutor': forms.TextInput(attrs={'class': 'form-control'}),
             'telefone_condutor': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '15'}),
             'data_atendimento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'id_cid': forms.Select(attrs={'class': 'form-control', 'data-autocomplete': 'cid'}),
+            'id_cid': forms.Select(attrs={'class': 'form-control'}),
             'id_tipo_escalpelamento': forms.Select(attrs={'class': 'form-select'}),
             'id_causa_acidente': forms.Select(attrs={'class': 'form-select'}),
             'causa_acidente_outros': forms.TextInput(attrs={'class': 'form-control'}),
@@ -83,15 +83,18 @@ class OcorrenciaForm(ModelForm):
 
             # Aba 6: Investigador
             'id_municipio_investigador': forms.Select(attrs={'class': 'form-select'}),
-            'id_cnes_invertigador': forms.Select(attrs={'class': 'form-control', 'data-autocomplete': 'estabelecimentos'}),
+            'id_cnes_invertigador': forms.Select(attrs={'class': 'form-control'}),
             'nome_invertigador': forms.TextInput(attrs={'class': 'form-control'}),
-            'funcao_invertigador': forms.Select(attrs={'class': 'form-control', 'data-autocomplete': 'cbo'}),
+            'funcao_invertigador': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        autocomplete_field_map = {
+        # Configurar querysets para campos de autocomplete
+        # Para novos registros, usar queryset vazio para melhor performance
+        # Para edição, carregar apenas o item selecionado
+        autocomplete_fields = {
             'id_cnes': Estabelecimentos,
             'id_cbo': Cbo,
             'id_cid': Cid,
@@ -99,12 +102,37 @@ class OcorrenciaForm(ModelForm):
             'funcao_invertigador': Cbo,
         }
 
-        for field_name, model in autocomplete_field_map.items():
+        for field_name, model in autocomplete_fields.items():
             if field_name in self.fields:
-                if self.instance.pk and getattr(self.instance, field_name):
-                    self.fields[field_name].queryset = model.objects.filter(pk=getattr(self.instance, field_name).pk)
+                if self.instance and self.instance.pk:
+                    # Se estiver editando e tiver valor, carregar apenas esse item
+                    current_value = getattr(self.instance, field_name, None)
+                    if current_value:
+                        self.fields[field_name].queryset = model.objects.filter(pk=current_value.pk)
+                        self.fields[field_name].initial = current_value.pk
+                    else:
+                        self.fields[field_name].queryset = model.objects.none()
                 else:
+                    # Para novo registro, usar queryset vazio (Select2 carregará via AJAX)
                     self.fields[field_name].queryset = model.objects.none()
+
+        # Configurar campos de município para carregamento dinâmico
+        municipio_fields = ['id_municipio_notificacao', 'id_municipio_residencia', 'id_municipio_transferencia']
+        for field_name in municipio_fields:
+            if field_name in self.fields:
+                if self.instance and self.instance.pk:
+                    # Se estiver editando e tiver valor, carregar apenas esse município
+                    current_value = getattr(self.instance, field_name, None)
+                    if current_value:
+                        self.fields[field_name].queryset = Municipios.objects.filter(pk=current_value.pk)
+                        self.fields[field_name].initial = current_value.pk
+                    else:
+                        self.fields[field_name].queryset = Municipios.objects.none()
+                else:
+                    # Para novo registro, usar queryset vazio (JavaScript carregará via AJAX)
+                    self.fields[field_name].queryset = Municipios.objects.none()
+                    # Adicionar opção padrão
+                    self.fields[field_name].empty_label = "Selecione..."
 
         # Configurar campos obrigatórios
         self.fields['tipo_notificacao'].required = True
@@ -128,7 +156,7 @@ class EvolucaoTratamentoForm(ModelForm):
         fields = '__all__'
         widgets = {
             'ocorrencia': forms.HiddenInput(),
-            'id_unidade_atendimento': forms.Select(attrs={'class': 'form-control', 'data-autocomplete': 'estabelecimentos'}),
+            'id_unidade_atendimento': forms.Select(attrs={'class': 'form-control'}),
             'data_entrada': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'outros_procedimentos': forms.TextInput(attrs={'class': 'form-control'}),
             'outros_complicacoes': forms.TextInput(attrs={'class': 'form-control'}),
@@ -141,13 +169,34 @@ class EvolucaoTratamentoForm(ModelForm):
             'data_encerramento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'evolucao': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'id_municipio_investigacao': forms.Select(attrs={'class': 'form-select'}),
-            'id_cnes_investigacao': forms.Select(attrs={'class': 'form-control', 'data-autocomplete': 'estabelecimentos'}),
+            'id_cnes_investigacao': forms.Select(attrs={'class': 'form-control'}),
             'nome_investigador': forms.TextInput(attrs={'class': 'form-control'}),
-            'id_funcao_investigador': forms.Select(attrs={'class': 'form-control', 'data-autocomplete': 'cbo'}),
+            'id_funcao_investigador': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+        # Configurar querysets para campos de autocomplete
+        autocomplete_fields = {
+            'id_unidade_atendimento': Estabelecimentos,
+            'id_cnes_investigacao': Estabelecimentos,
+            'id_funcao_investigador': Cbo,
+        }
+
+        for field_name, model in autocomplete_fields.items():
+            if field_name in self.fields:
+                if self.instance and self.instance.pk:
+                    # Se estiver editando e tiver valor, carregar apenas esse item
+                    current_value = getattr(self.instance, field_name, None)
+                    if current_value:
+                        self.fields[field_name].queryset = model.objects.filter(pk=current_value.pk)
+                        self.fields[field_name].initial = current_value.pk
+                    else:
+                        self.fields[field_name].queryset = model.objects.none()
+                else:
+                    # Para novo registro, usar queryset vazio (Select2 carregará via AJAX)
+                    self.fields[field_name].queryset = model.objects.none()
         
         # Configurar campos obrigatórios
         self.fields['outros_complicacoes'].required = True

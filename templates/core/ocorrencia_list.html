@@ -4,11 +4,41 @@
 {% block title %}Ocorrências - SIGEPA{% endblock %}
 
 {% block content %}
+<!-- Hero Section -->
+<div class="hero-background py-4 mb-4">
+    <div class="container hero-content">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-5 text-white fw-bold mb-2">
+                    <i class="fas fa-clipboard-list me-3"></i>
+                    Gestão de Ocorrências
+                </h1>
+                <p class="lead text-white mb-0">
+                    Gerencie todas as ocorrências de escalpelamentos de forma eficiente
+                </p>
+            </div>
+            <div class="col-lg-4 text-end">
+                <a href="{% url 'core:ocorrencia_create' %}" class="btn btn-light btn-lg">
+                    <i class="fas fa-plus me-2"></i> Nova Ocorrência
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Ocorrências</h1>
-    <a href="{% url 'core:ocorrencia_create' %}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Nova Ocorrência
-    </a>
+    <div>
+        <h2 class="mb-0">Lista de Ocorrências</h2>
+        <p class="text-muted">Visualize e gerencie todas as ocorrências registradas</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'usuarios:home' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-home me-1"></i> Dashboard
+        </a>
+        <a href="{% url 'core:ocorrencia_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Nova Ocorrência
+        </a>
+    </div>
 </div>
 
 <!-- Filtros -->

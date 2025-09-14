@@ -122,6 +122,7 @@ class OcorrenciaUpdateView(LoginRequiredMixin, UpdateView):
     
     def form_valid(self, form):
         messages.success(self.request, 'Ocorrência atualizada com sucesso!')
+        
         return super().form_valid(form)
 
 
@@ -179,41 +180,70 @@ class EvolucaoTratamentoCreateView(LoginRequiredMixin, CreateView):
 # Views para APIs de autocomplete
 @csrf_exempt
 def autocomplete_cbo(request):
-    """API para autocomplete de CBO"""
+    """API para autocomplete de CBO com paginação"""
     query = request.GET.get('q', '')
-    if len(query) < 2:
-        return JsonResponse({'results': []})
+    page = int(request.GET.get('page', 1))
+    per_page = 10
     
-    cbos = Cbo.objects.filter(
-        Q(codigo__icontains=query) | Q(titulo__icontains=query)
-    )[:10]
+    # Filtrar CBOs
+    cbos_query = Cbo.objects.all().order_by('codigo')
+    if query:
+        cbos_query = cbos_query.filter(
+            Q(codigo__icontains=query) | Q(titulo__icontains=query)
+        )
+    
+    # Aplicar paginação
+    paginator = Paginator(cbos_query, per_page)
+    try:
+        cbos_page = paginator.page(page)
+    except:
+        cbos_page = paginator.page(1)
     
     results = []
-    for cbo in cbos:
+    for cbo in cbos_page.object_list:
         results.append({
             'id': cbo.codigo,
             'text': f"{cbo.codigo} - {cbo.titulo}"
         })
     
-    return JsonResponse({'results': results})
+    return JsonResponse({
+        'results': results,
+        'pagination': {
+            'current_page': cbos_page.number,
+            'total_pages': paginator.num_pages,
+            'total_items': paginator.count,
+            'has_next': cbos_page.has_next(),
+            'has_previous': cbos_page.has_previous()
+        }
+    })
 
 
 @csrf_exempt
 def autocomplete_cid(request):
-    """API para autocomplete de CID"""
+    """API para autocomplete de CID com paginação"""
     query = request.GET.get('q', '')
-    if len(query) < 2:
-        return JsonResponse({'results': []})
+    page = int(request.GET.get('page', 1))
+    per_page = 10
     
-    cids = Cid.objects.filter(
-        Q(cod_categoria__icontains=query) | 
-        Q(cod_subcategoria__icontains=query) |
-        Q(desc_categoria__icontains=query) |
-        Q(desc_subcategoria__icontains=query)
-    )[:10]
+    # Filtrar CIDs
+    cids_query = Cid.objects.all().order_by('cod_categoria', 'cod_subcategoria')
+    if query:
+        cids_query = cids_query.filter(
+            Q(cod_categoria__icontains=query) | 
+            Q(cod_subcategoria__icontains=query) |
+            Q(desc_categoria__icontains=query) |
+            Q(desc_subcategoria__icontains=query)
+        )
+    
+    # Aplicar paginação
+    paginator = Paginator(cids_query, per_page)
+    try:
+        cids_page = paginator.page(page)
+    except:
+        cids_page = paginator.page(1)
     
     results = []
-    for cid in cids:
+    for cid in cids_page.object_list:
         codigo = f"{cid.cod_categoria}.{cid.cod_subcategoria}" if cid.cod_subcategoria else cid.cod_categoria
         descricao = cid.desc_subcategoria or cid.desc_categoria
         results.append({
@@ -221,39 +251,113 @@ def autocomplete_cid(request):
             'text': f"{codigo} - {descricao}"
         })
     
-    return JsonResponse({'results': results})
+    return JsonResponse({
+        'results': results,
+        'pagination': {
+            'current_page': cids_page.number,
+            'total_pages': paginator.num_pages,
+            'total_items': paginator.count,
+            'has_next': cids_page.has_next(),
+            'has_previous': cids_page.has_previous()
+        }
+    })
 
 
 @csrf_exempt
 def autocomplete_estabelecimentos(request):
-    """API para autocomplete de Estabelecimentos"""
+    """API para autocomplete de Estabelecimentos com paginação"""
     query = request.GET.get('q', '')
-    if len(query) < 2:
-        return JsonResponse({'results': []})
+    page = int(request.GET.get('page', 1))
+    per_page = 10
     
-    estabelecimentos = Estabelecimentos.objects.filter(
-        Q(co_cnes__icontains=query) | 
-        Q(no_fantasia__icontains=query) |
-        Q(nu_cnpj__icontains=query)
-    )[:10]
+    # Filtrar estabelecimentos
+    estabelecimentos_query = Estabelecimentos.objects.all().order_by('co_cnes')
+    if query:
+        estabelecimentos_query = estabelecimentos_query.filter(
+            Q(co_cnes__icontains=query) | 
+            Q(no_fantasia__icontains=query) |
+            Q(nu_cnpj__icontains=query)
+        )
+    
+    # Aplicar paginação
+    paginator = Paginator(estabelecimentos_query, per_page)
+    try:
+        estabelecimentos_page = paginator.page(page)
+    except:
+        estabelecimentos_page = paginator.page(1)
     
     results = []
-    for est in estabelecimentos:
+    for est in estabelecimentos_page.object_list:
         results.append({
             'id': est.co_unidade,
             'text': f"{est.co_cnes} - {est.no_fantasia or 'Sem nome'}"
         })
     
-    return JsonResponse({'results': results})
+    return JsonResponse({
+        'results': results,
+        'pagination': {
+            'current_page': estabelecimentos_page.number,
+            'total_pages': paginator.num_pages,
+            'total_items': paginator.count,
+            'has_next': estabelecimentos_page.has_next(),
+            'has_previous': estabelecimentos_page.has_previous()
+        }
+    })
 
 
 # View para carregar municípios por estado
 @csrf_exempt
 def load_municipios(request):
     """Carregar municípios por estado"""
-    estado_id = request.GET.get('estado_id')
-    if estado_id:
+    try:
+        estado_id = request.GET.get('estado_id')
+        print(f"🔍 Carregando municípios para estado_id: {estado_id}")
+        
+        if not estado_id:
+            print("⚠️ Estado ID não fornecido")
+            return JsonResponse({
+                'municipios': [],
+                'error': 'Estado ID não fornecido'
+            })
+        
+        # Verificar se o estado existe
+        try:
+            estado = Estado.objects.get(idestado=estado_id)
+            print(f"📍 Estado encontrado: {estado.descricao}")
+        except Estado.DoesNotExist:
+            print(f"❌ Estado não encontrado: {estado_id}")
+            return JsonResponse({
+                'municipios': [],
+                'error': f'Estado {estado_id} não encontrado'
+            })
+        
+        # Buscar municípios
         municipios = Municipios.objects.filter(id_uf_id=estado_id).order_by('nome_municipio')
-        data = [{'id': m.id_municipio, 'nome': m.nome_municipio} for m in municipios]
-        return JsonResponse({'municipios': data})
-    return JsonResponse({'municipios': []})
+        count = municipios.count()
+        print(f"📊 Encontrados {count} municípios para estado {estado_id}")
+        
+        data = []
+        for m in municipios:
+            if m.nome_municipio:  # Verificar se o nome não é None
+                data.append({
+                    'id': m.id_municipio, 
+                    'nome': m.nome_municipio
+                })
+        
+        result = {
+            'municipios': data,
+            'success': True
+        }
+        
+        print(f"✅ Retornando {len(data)} municípios válidos")
+        return JsonResponse(result)
+            
+    except Exception as e:
+        print(f"❌ Erro ao carregar municípios: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'error': str(e), 
+            'municipios': [],
+            'success': False
+        }, status=500)

@@ -4,11 +4,30 @@
 {% block title %}{{ title }} - SIGEPA{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>{{ title }}</h1>
-    <a href="{% url 'core:ocorrencia_list' %}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Voltar
-    </a>
+<!-- Hero Section -->
+<div class="hero-background py-4 mb-4">
+    <div class="container hero-content">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-5 text-white fw-bold mb-2">
+                    <i class="fas fa-{% if 'Nova' in title %}plus{% else %}edit{% endif %} me-3"></i>
+                    {{ title }}
+                </h1>
+                <p class="lead text-white mb-0">
+                    {% if 'Nova' in title %}
+                        Registre uma nova ocorrência de escalpelamento
+                    {% else %}
+                        Edite os dados da ocorrência existente
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-lg-4 text-end">
+                <a href="{% url 'core:ocorrencia_list' %}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-1"></i> Voltar
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <form method="post" id="ocorrencia-form">
@@ -98,7 +117,12 @@
                             <label for="{{ form.id_cnes.id_for_label }}" class="form-label">
                                 CNES *
                             </label>
-                            {{ form.id_cnes }}
+                            <div class="input-group">
+                                {{ form.id_cnes }}
+                                <button type="button" class="btn btn-outline-secondary" onclick="openSearchModal('estabelecimentos', '#id_id_cnes')">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
                             {% if form.id_cnes.errors %}
                                 <div class="text-danger">{{ form.id_cnes.errors }}</div>
                             {% endif %}
@@ -215,7 +239,12 @@
                             <label for="{{ form.id_cbo.id_for_label }}" class="form-label">
                                 CBO
                             </label>
-                            {{ form.id_cbo }}
+                            <div class="input-group">
+                                {{ form.id_cbo }}
+                                <button type="button" class="btn btn-outline-secondary" onclick="openSearchModal('cbo', '#id_id_cbo')">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
                             {% if form.id_cbo.errors %}
                                 <div class="text-danger">{{ form.id_cbo.errors }}</div>
                             {% endif %}
@@ -458,7 +487,12 @@
                             <label for="{{ form.id_cid.id_for_label }}" class="form-label">
                                 CID
                             </label>
-                            {{ form.id_cid }}
+                            <div class="input-group">
+                                {{ form.id_cid }}
+                                <button type="button" class="btn btn-outline-secondary" onclick="openSearchModal('cid', '#id_id_cid')">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
                             {% if form.id_cid.errors %}
                                 <div class="text-danger">{{ form.id_cid.errors }}</div>
                             {% endif %}
@@ -602,7 +636,12 @@
                             <label for="{{ form.id_cnes_invertigador.id_for_label }}" class="form-label">
                                 CNES do Investigador
                             </label>
-                            {{ form.id_cnes_invertigador }}
+                            <div class="input-group">
+                                {{ form.id_cnes_invertigador }}
+                                <button type="button" class="btn btn-outline-secondary" onclick="openSearchModal('estabelecimentos', '#id_id_cnes_invertigador')">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
                             {% if form.id_cnes_invertigador.errors %}
                                 <div class="text-danger">{{ form.id_cnes_invertigador.errors }}</div>
                             {% endif %}
@@ -620,7 +659,12 @@
                             <label for="{{ form.funcao_invertigador.id_for_label }}" class="form-label">
                                 Função do Investigador
                             </label>
-                            {{ form.funcao_invertigador }}
+                            <div class="input-group">
+                                {{ form.funcao_invertigador }}
+                                <button type="button" class="btn btn-outline-secondary" onclick="openSearchModal('cbo', '#id_funcao_invertigador')">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
                             {% if form.funcao_invertigador.errors %}
                                 <div class="text-danger">{{ form.funcao_invertigador.errors }}</div>
                             {% endif %}
@@ -645,81 +689,138 @@
     </div>
 </form>
 
+<!-- Modais de Pesquisa -->
+<!-- Modal para CNES/Estabelecimentos -->
+<div class="modal fade" id="modalEstabelecimentos" tabindex="-1" aria-labelledby="modalEstabelecimentosLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEstabelecimentosLabel">Pesquisar Estabelecimento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="searchEstabelecimentos" class="form-label">Pesquisar Estabelecimentos:</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="searchEstabelecimentos" placeholder="Digite o CNES ou nome do estabelecimento...">
+                        <button class="btn btn-primary" type="button" onclick="executeSearchFromButton('estabelecimentos')">
+                            <i class="fas fa-search"></i> Pesquisar
+                        </button>
+                        <button class="btn btn-outline-secondary" type="button" onclick="clearSearch('estabelecimentos')">
+                            <i class="fas fa-times"></i> Limpar
+                        </button>
+                    </div>
+                </div>
+                <div id="loadingEstabelecimentos" class="text-center d-none">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+                <div id="resultsEstabelecimentos"></div>
+                <nav>
+                    <ul class="pagination justify-content-center" id="paginationEstabelecimentos"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para CBO -->
+<div class="modal fade" id="modalCbo" tabindex="-1" aria-labelledby="modalCboLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCboLabel">Pesquisar CBO</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="searchCbo" class="form-label">Pesquisar CBO (Ocupação):</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="searchCbo" placeholder="Digite o código ou título da ocupação...">
+                        <button class="btn btn-primary" type="button" onclick="executeSearchFromButton('cbo')">
+                            <i class="fas fa-search"></i> Pesquisar
+                        </button>
+                        <button class="btn btn-outline-secondary" type="button" onclick="clearSearch('cbo')">
+                            <i class="fas fa-times"></i> Limpar
+                        </button>
+                    </div>
+                </div>
+                <div id="loadingCbo" class="text-center d-none">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+                <div id="resultsCbo"></div>
+                <nav>
+                    <ul class="pagination justify-content-center" id="paginationCbo"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para CID -->
+<div class="modal fade" id="modalCid" tabindex="-1" aria-labelledby="modalCidLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCidLabel">Pesquisar CID</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="searchCid" class="form-label">Pesquisar CID (Código de Doença):</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="searchCid" placeholder="Digite o código ou descrição...">
+                        <button class="btn btn-primary" type="button" onclick="executeSearchFromButton('cid')">
+                            <i class="fas fa-search"></i> Pesquisar
+                        </button>
+                        <button class="btn btn-outline-secondary" type="button" onclick="clearSearch('cid')">
+                            <i class="fas fa-times"></i> Limpar
+                        </button>
+                    </div>
+                </div>
+                <div id="loadingCid" class="text-center d-none">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+                <div id="resultsCid"></div>
+                <nav>
+                    <ul class="pagination justify-content-center" id="paginationCid"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
 <script>
-    $(document).ready(function() {
-        // Inicializa Select2 para campos de seleção padrão
-        $('form select:not([data-autocomplete])').select2({
-            theme: 'bootstrap-5',
-            width: '100%'
-        });
-    
-        // Inicializa Select2 para campos de autocomplete
-        $('select[data-autocomplete]').each(function() {
-            var $element = $(this);
-            var autocomplete_type = $element.data('autocomplete');
-            var url = '/core/api/' + autocomplete_type + '/';
-    
-            $element.select2({
-                theme: 'bootstrap-5',
-                width: '100%',
-                ajax: {
-                    url: url,
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return {
-                            q: params.term, // termo de busca
-                            page: params.page
-                        };
-                    },
-                    processResults: function (data, params) {
-                        params.page = params.page || 1;
-                        return {
-                            results: data.results,
-                            pagination: {
-                                more: (params.page * 10) < data.count_filtered
-                            }
-                        };
-                    },
-                    cache: true
-                },
-                placeholder: 'Digite para buscar...',
-                minimumInputLength: 2
-            });
-        });
-    
-        // Função para carregar municípios dinamicamente
-        function loadMunicipios(ufId, target) {
-            if (ufId && target) {
-                $.ajax({
-                    url: '{% url "core:load_municipios" %}',
-                    data: { 'estado_id': ufId },
-                    success: function(data) {
-                        var municipioSelect = $(target);
-                        var currentVal = municipioSelect.val();
-                        municipioSelect.empty().append('<option value="">Selecione...</option>');
-                        $.each(data.municipios, function(index, municipio) {
-                            municipioSelect.append($('<option>', {
-                                value: municipio.id,
-                                text: municipio.nome
-                            }));
-                        });
-                        municipioSelect.val(currentVal).trigger('change');
-                    }
-                });
-            }
+// Aguardar jQuery estar disponível
+(function() {
+    function initScript() {
+        if (typeof $ === 'undefined') {
+            console.log('⏳ Aguardando jQuery...');
+            setTimeout(initScript, 100);
+            return;
         }
+        
+        console.log('✅ jQuery disponível, carregando script...');
+        
+        // Carregar o script principal via AJAX
+        $.getScript('{% static "js/ocorrencia-form.js" %}')
+            .done(function() {
+                console.log('✅ Script carregado com sucesso');
+            })
+            .fail(function() {
+                console.error('❌ Erro ao carregar script');
+            });
+    }
     
-        // Gatilho para carregar municípios ao mudar o estado
-        $('#id_uf_notificacao').on('change', function() {
-            loadMunicipios($(this).val(), '#id_municipio_notificacao');
-        });
-        $('#id_uf_residencia').on('change', function() {
-            loadMunicipios($(this).val(), '#id_municipio_residencia');
-        });
-        $('#id_uf_transferencia').on('change', function() {
-            loadMunicipios($(this).val(), '#id_municipio_transferencia');
-        });
-    });
-    </script>
+    initScript();
+})();
+</script>
 {% endblock %}
