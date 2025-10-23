@@ -166,6 +166,12 @@
                         <p>{{ ocorrencia.id_povo_tradicional.descricao }}</p>
                     </div>
                     {% endif %}
+                    {% if ocorrencia.outros_povo_tradicional %}
+                    <div class="col-md-3">
+                        <strong>Outros Povo Tradicional:</strong>
+                        <p>{{ ocorrencia.outros_povo_tradicional }}</p>
+                    </div>
+                    {% endif %}
                     {% if ocorrencia.cartao_sus %}
                     <div class="col-md-4">
                         <strong>Cartão SUS:</strong>

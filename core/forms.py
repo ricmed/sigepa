@@ -34,6 +34,7 @@ class OcorrenciaForm(ModelForm):
             'id_tempo_gestacao': forms.Select(attrs={'class': 'form-select'}),
             'id_raca': forms.Select(attrs={'class': 'form-select'}),
             'id_povo_tradicional': forms.Select(attrs={'class': 'form-select'}),
+            'outros_povo_tradicional': forms.TextInput(attrs={'class': 'form-control'}),    
             'cartao_sus': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '15'}),
             'cpf': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '11'}),
             'id_cbo': forms.Select(attrs={'class': 'form-control'}),

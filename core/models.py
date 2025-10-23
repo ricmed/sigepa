@@ -178,6 +178,7 @@ class Ocorrencia(models.Model):
     id_tempo_gestacao = models.ForeignKey('TempoGestacao', models.DO_NOTHING, db_column='id_tempo_gestacao')
     id_raca = models.ForeignKey('Raca', models.DO_NOTHING, db_column='id_raca')
     id_povo_tradicional = models.ForeignKey('PovoTradicional', models.DO_NOTHING, db_column='id_povo_tradicional', blank=True, null=True)
+    outros_povo_tradicional = models.CharField(max_length=45, blank=True, null=True)
     cartao_sus = models.CharField(max_length=15, blank=True, null=True)
     cpf = models.CharField(max_length=11, blank=True, null=True)
     id_cbo = models.ForeignKey(Cbo, models.DO_NOTHING, db_column='id_cbo', blank=True, null=True)

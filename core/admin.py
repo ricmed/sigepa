@@ -20,7 +20,7 @@ class OcorrenciaAdmin(admin.ModelAdmin):
             'fields': ('tipo_notificacao', 'data_notificacao', 'id_uf_notificacao', 'id_municipio_notificacao', 'id_cnes')
         }),
         ('Dados do Paciente', {
-            'fields': ('nome_paciente', 'data_nascimento', 'idade', 'id_sexo', 'id_tempo_gestacao', 'id_raca', 'id_povo_tradicional')
+            'fields': ('nome_paciente', 'data_nascimento', 'idade', 'id_sexo', 'id_tempo_gestacao', 'id_raca', 'id_povo_tradicional', 'outros_povo_tradicional')
         }),
         ('Documentos', {
             'fields': ('cartao_sus', 'cpf', 'id_cbo', 'nome_mae', 'id_escolaridade', 'id_pais')
