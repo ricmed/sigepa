@@ -88,6 +88,7 @@ class Estado(models.Model):
 
 
 class EvolucaoTratamento(models.Model):
+    id = models.AutoField(primary_key=True)
     ocorrencia = models.ForeignKey('Ocorrencia', models.DO_NOTHING)
     id_unidade_atendimento = models.ForeignKey(Estabelecimentos, models.DO_NOTHING, db_column='id_unidade_atendimento', blank=True, null=True)
     data_entrada = models.DateField(blank=True, null=True)
@@ -109,6 +110,13 @@ class EvolucaoTratamento(models.Model):
     class Meta:
         managed = False
         db_table = 'evolucao_tratamento'
+    
+    def __str__(self):
+        return f"Evolução {self.pk} - {self.ocorrencia.nome_paciente if self.ocorrencia else 'N/A'}"
+    
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('core:ocorrencia_detail', kwargs={'pk': self.ocorrencia.pk})
 
 
 class EvolucaoTratamentoHasTipoComplicacao(models.Model):
@@ -155,6 +163,7 @@ class Municipios(models.Model):
 
 
 class Ocorrencia(models.Model):
+    id = models.AutoField(primary_key=True)
     tipo_notificacao = models.ForeignKey('TipoNotificacao', models.DO_NOTHING, db_column='tipo_notificacao')
     data_notificacao = models.DateField()
     id_uf_notificacao = models.ForeignKey(Estado, models.DO_NOTHING, db_column='id_uf_notificacao')
@@ -217,6 +226,13 @@ class Ocorrencia(models.Model):
     class Meta:
         managed = False
         db_table = 'ocorrencia'
+    
+    def __str__(self):
+        return f"Ocorrência {self.pk} - {self.nome_paciente}"
+    
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('core:ocorrencia_detail', kwargs={'pk': self.pk})
 
 
 class OcorrenciaHasTipoParteAtingida(models.Model):

@@ -226,12 +226,12 @@ function debounce(func, wait) {
     };
 }
 
-// Função para carregar municípios dinamicamente
-function loadMunicipios(ufId, target) {
-    console.log('🔄 Carregando municípios para UF:', ufId, 'target:', target);
+// Função para carregar municípios (com ou sem filtro de UF)
+function loadMunicipiosComFiltro(target, ufId = null, nomeContexto = '') {
+    console.log(`🔄 Carregando municípios para: ${target}${ufId ? ` (UF: ${ufId})` : ' (todos)'}${nomeContexto ? ` - ${nomeContexto}` : ''}`);
     
-    if (!ufId || !target) {
-        console.log('⚠️ Parâmetros inválidos - UF:', ufId, 'Target:', target);
+    if (!target) {
+        console.log('⚠️ Target não fornecido');
         return;
     }
     
@@ -241,124 +241,403 @@ function loadMunicipios(ufId, target) {
         return;
     }
     
+    // Preservar valor atual em modo de edição
+    const currentValue = municipioSelect.val();
+    const isEdit = isEditMode();
+    
     // Mostrar indicador de carregamento
     municipioSelect.prop('disabled', true);
     municipioSelect.html('<option value="">Carregando...</option>');
     
-    console.log('📡 Fazendo requisição AJAX...');
+    const url = '/core/api/municipios/';
+    const data = ufId ? { 'estado_id': ufId } : {};
+    
+    console.log(`📡 Fazendo requisição AJAX para ${ufId ? `municípios da UF ${ufId}` : 'todos os municípios'}...`);
     
     $.ajax({
-        url: '/core/api/municipios/',
+        url: url,
         method: 'GET',
-        data: { 'estado_id': ufId },
+        data: data,
         dataType: 'json',
+        timeout: 15000,
         success: function(data) {
-            console.log('✅ Resposta da API:', data);
+            console.log(`✅ Resposta da API (${nomeContexto || 'municípios'}):`, data);
             
-            // Limpar select atual
-            municipioSelect.empty();
-            municipioSelect.append('<option value="">Selecione...</option>');
-            
-            // Verificar se a resposta é válida
-            if (data && data.success !== false) {
-                // Adicionar municípios
-                if (data.municipios && data.municipios.length > 0) {
-                    $.each(data.municipios, function(index, municipio) {
-                        municipioSelect.append('<option value="' + municipio.id + '">' + municipio.nome + '</option>');
-                    });
-                    console.log('📋 Municípios adicionados:', data.municipios.length);
+            try {
+                // Limpar select atual
+                municipioSelect.empty();
+                municipioSelect.append('<option value="">Selecione...</option>');
+                
+                // Verificar se a resposta é válida
+                if (data && data.success !== false) {
+                    // Adicionar municípios
+                    if (data.municipios && Array.isArray(data.municipios) && data.municipios.length > 0) {
+                        $.each(data.municipios, function(index, municipio) {
+                            if (municipio && municipio.id && municipio.nome) {
+                                municipioSelect.append('<option value="' + municipio.id + '">' + municipio.nome + '</option>');
+                            }
+                        });
+                        console.log(`📋 ${nomeContexto ? nomeContexto + ' - ' : ''}Municípios carregados: ${data.municipios.length}`);
+                    } else {
+                        municipioSelect.append('<option value="">Nenhum município encontrado</option>');
+                        console.log(`⚠️ Nenhum município encontrado${ufId ? ` para UF ${ufId}` : ''}`);
+                    }
                 } else {
-                    municipioSelect.append('<option value="">Nenhum município encontrado</option>');
-                    console.log('⚠️ Nenhum município encontrado');
+                    municipioSelect.append('<option value="">Erro na resposta do servidor</option>');
+                    console.log('❌ Resposta inválida da API:', data);
                 }
-            } else {
-                municipioSelect.append('<option value="">Erro na resposta</option>');
-                console.log('❌ Resposta inválida da API');
+            } catch (e) {
+                console.error('❌ Erro ao processar dados dos municípios:', e);
+                municipioSelect.empty();
+                municipioSelect.append('<option value="">Erro ao processar dados</option>');
+            }
+            
+            // Restaurar valor selecionado em modo de edição
+            if (isEdit && currentValue) {
+                municipioSelect.val(currentValue);
+                console.log(`🔄 Valor restaurado para ${target}: ${currentValue}`);
             }
             
             // Reabilitar o select
             municipioSelect.prop('disabled', false);
         },
         error: function(xhr, status, error) {
-            console.error('❌ Erro na requisição:', error);
-            console.error('Status:', status);
-            console.error('Response:', xhr.responseText);
+            console.error(`❌ Erro na requisição AJAX (${nomeContexto || 'municípios'}):`, {
+                error: error,
+                status: status,
+                responseText: xhr.responseText,
+                url: url,
+                ufId: ufId
+            });
             
             municipioSelect.empty();
-            municipioSelect.append('<option value="">Erro ao carregar</option>');
+            
+            let errorMessage = 'Erro ao carregar municípios';
+            if (status === 'timeout') {
+                errorMessage = 'Timeout - tente novamente';
+            } else if (status === 'abort') {
+                errorMessage = 'Requisição cancelada';
+            } else if (xhr.status === 404) {
+                errorMessage = 'API não encontrada';
+            } else if (xhr.status === 500) {
+                errorMessage = 'Erro do servidor';
+            }
+            
+            municipioSelect.append('<option value="">' + errorMessage + '</option>');
             municipioSelect.prop('disabled', false);
+        }
+    });
+}
+
+// Função para carregar todos os municípios (para campos sem UF) - mantida para compatibilidade
+function loadAllMunicipios(target, nomeContexto = '') {
+    return loadMunicipiosComFiltro(target, null, nomeContexto);
+}
+
+// Função para inicializar campos de município específicos (ocorrência/investigador) com municípios do Pará
+function initializeMunicipiosEspecificos() {
+    console.log('🔄 Inicializando municípios específicos...');
+    
+    const camposEspecificos = [
+        { selector: '#id_municipio_ocorrencia', nome: 'Ocorrência' },
+        { selector: '#id_municipio_investigador', nome: 'Investigador' }
+    ];
+    
+    camposEspecificos.forEach(function(campo) {
+        const $elemento = $(campo.selector);
+        if ($elemento.length > 0) {
+            // Se não estiver em modo de edição, carregar municípios do Pará
+            if (!isEditMode()) {
+                console.log(`📍 Carregando municípios do Pará para ${campo.nome}`);
+                loadMunicipiosComFiltro(campo.selector, 15, `Municípios do Pará - ${campo.nome}`);
+            }
+        }
+    });
+}
+
+// Função para carregar municípios dinamicamente (compatibilidade)
+function loadMunicipios(ufId, target) {
+    const nomeContexto = `Municípios por UF (${ufId})`;
+    return loadMunicipiosComFiltro(target, ufId, nomeContexto);
+}
+
+// Função para inicializar o formulário de forma segura
+function initializeFormulario(elementosDisponiveis = {}) {
+    console.log('🔄 Inicializando formulário com modais de pesquisa...');
+    
+    // Primeiro, vamos ver todos os elementos de formulário disponíveis
+    console.log('🔍 Elementos de formulário disponíveis:');
+    $('form input, form select').each(function() {
+        if (this.id) {
+            console.log('   - ID encontrado:', this.id);
+        }
+    });
+    
+    console.log('🔍 Elementos disponíveis passados para inicialização:', elementosDisponiveis);
+
+    // Configurar gatilhos para mudança de UF usando elementos encontrados dinamicamente
+    const ufMunicipioMap = [
+        { 
+            uf: elementosDisponiveis['uf_notificacao'], 
+            municipio: elementosDisponiveis['municipio_notificacao'], 
+            nome: 'Notificação',
+            carregarInicial: false  // Não carregar inicialmente em novos registros
+        },
+        { 
+            uf: elementosDisponiveis['uf_residencia'], 
+            municipio: elementosDisponiveis['municipio_residencia'], 
+            nome: 'Residência',
+            carregarInicial: false  // Não carregar inicialmente em novos registros
+        },
+        { 
+            uf: elementosDisponiveis['uf_transferencia'], 
+            municipio: elementosDisponiveis['municipio_transferencia'], 
+            nome: 'Transferência',
+            carregarInicial: false  // Não carregar inicialmente em novos registros
+        }
+    ];
+    
+    ufMunicipioMap.forEach(function(map) {
+        if (!map.uf || !map.municipio) {
+            console.warn(`⚠️ Elementos não encontrados para ${map.nome}`);
+            return;
+        }
+        
+        const $uf = $(map.uf);
+        const $municipio = $(map.municipio);
+        
+        if ($uf.length && $municipio.length) {
+            console.log(`✅ Configurando gatilho para UF ${map.nome} (${map.uf} -> ${map.municipio})`);
+            
+            $uf.on('change', function() {
+                var ufId = $(this).val();
+                console.log(`🔄 UF ${map.nome} mudou para:`, ufId);
+                
+                // Em modo de edição, preservar o valor atual do município se não mudou a UF
+                const currentMunicipioValue = $municipio.val();
+                const isEdit = isEditMode();
+                
+                // Limpar município atual apenas se não estivermos em modo de edição
+                // ou se a UF realmente mudou
+                if (!isEdit || !currentMunicipioValue) {
+                    $municipio.val('');
+                }
+                
+                if (ufId) {
+                    loadMunicipios(ufId, map.municipio);
+                } else {
+                    $municipio.empty().append('<option value="">Selecione...</option>');
+                }
+            });
+            
+            // Carregar municípios iniciais apenas se já houver UF selecionada E estivermos em modo de edição
+            if ($uf.val() && isEditMode()) {
+                console.log(`📍 Carregando municípios iniciais para ${map.nome} (modo edição)`);
+                loadMunicipios($uf.val(), map.municipio);
+            } else if ($uf.val()) {
+                console.log(`📍 UF ${map.nome} já selecionada, mas não carregando municípios (modo criação)`);
+            }
+        } else {
+            console.warn(`⚠️ Elementos DOM não encontrados para ${map.nome}: UF=${$uf.length}, Município=${$municipio.length}`);
+        }
+    });
+    
+    // Carregar municípios filtrados por UF=15 para campos específicos (apenas em modo de edição)
+    console.log('🔍 Verificando campos específicos de município...');
+    
+    const municipiosEspecificos = [
+        { 
+            selector: elementosDisponiveis['municipio_ocorrencia'], 
+            nome: 'Ocorrência',
+            ufId: 15,
+            descricao: 'Municípios da Ocorrência (UF=15)'
+        },
+        { 
+            selector: elementosDisponiveis['municipio_investigador'], 
+            nome: 'Investigador',
+            ufId: 15,
+            descricao: 'Municípios do Investigador (UF=15)'
+        }
+    ];
+    
+    municipiosEspecificos.forEach(function(campo) {
+        if (!campo.selector) {
+            console.warn(`⚠️ Campo ${campo.nome} não foi encontrado nos elementos disponíveis`);
+            return;
+        }
+        
+        const $elemento = $(campo.selector);
+        if ($elemento.length > 0) {
+            // Carregar municípios do Pará apenas em modo de edição
+            if (isEditMode()) {
+                console.log(`📍 Carregando municípios para ${campo.nome} (${campo.selector}) - UF=${campo.ufId} (modo edição)`);
+                loadMunicipiosComFiltro(campo.selector, campo.ufId, campo.descricao);
+            } else {
+                console.log(`📍 Campo ${campo.nome} iniciará vazio (modo criação)`);
+                // Garantir que o campo inicie com mensagem apropriada
+                $elemento.empty().append('<option value="">Selecione...</option>');
+            }
+        } else {
+            console.warn(`⚠️ Campo ${campo.nome} (${campo.selector}) não encontrado no DOM`);
+        }
+    });
+}
+
+// Função para encontrar elementos com seletores flexíveis
+function findElement(baseName) {
+    const possibleSelectors = [
+        `#id_${baseName}`,
+        `#${baseName}`,
+        `[name="${baseName}"]`,
+        `[name="id_${baseName}"]`
+    ];
+    
+    console.log(`🔍 Procurando elemento: ${baseName}`);
+    
+    for (const selector of possibleSelectors) {
+        const element = $(selector);
+        console.log(`   - Tentando seletor: ${selector} -> ${element.length > 0 ? 'ENCONTRADO' : 'Não encontrado'}`);
+        if (element.length > 0) {
+            console.log(`✅ Encontrado ${baseName} usando seletor: ${selector}`);
+            return { element, selector };
+        }
+    }
+    
+    // Se não encontrou, vamos tentar buscar por atributos parciais
+    const allElements = $('input, select').filter(function() {
+        const id = this.id || '';
+        const name = this.name || '';
+        return id.includes(baseName) || name.includes(baseName);
+    });
+    
+    if (allElements.length > 0) {
+        console.log(`🔍 Elementos similares encontrados para ${baseName}:`);
+        allElements.each(function() {
+            console.log(`   - ID: "${this.id}", Name: "${this.name}", Tag: ${this.tagName}`);
+        });
+    }
+    
+    console.warn(`⚠️ ${baseName} não encontrado com nenhum seletor`);
+    return null;
+}
+
+// Função para aguardar elementos estarem disponíveis
+function waitForElements(retries = 5, delay = 500) {
+    console.log(`🔄 Tentativa ${6 - retries} de verificar elementos...`);
+    
+    const elementos = [
+        'uf_notificacao',
+        'municipio_notificacao', 
+        'uf_residencia',
+        'municipio_residencia',
+        'uf_transferencia',
+        'municipio_transferencia',
+        'municipio_ocorrencia',
+        'municipio_investigador'
+    ];
+    
+    // Mapear nomes dos elementos para seletores corretos
+    const elementoMap = {
+        'uf_notificacao': 'id_uf_notificacao',
+        'municipio_notificacao': 'id_municipio_notificacao',
+        'uf_residencia': 'id_uf_residencia', 
+        'municipio_residencia': 'id_municipio_residencia',
+        'uf_transferencia': 'id_uf_transferencia',
+        'municipio_transferencia': 'id_municipio_transferencia',
+        'municipio_ocorrencia': 'id_municipio_ocorrencia',
+        'municipio_investigador': 'id_municipio_investigador'
+    };
+    
+    let elementosEncontrados = 0;
+    const elementosDisponiveis = {};
+    
+    elementos.forEach(baseName => {
+        // Usar o mapeamento correto para encontrar o elemento
+        const realFieldName = elementoMap[baseName] || baseName;
+        const result = findElement(realFieldName);
+        if (result) {
+            elementosEncontrados++;
+            elementosDisponiveis[baseName] = result.selector;
+        }
+    });
+    
+    console.log(`📊 Elementos encontrados: ${elementosEncontrados}/${elementos.length}`);
+    
+    if (elementosEncontrados >= 3 || retries <= 0) { // Pelo menos 3 elementos ou esgotou tentativas
+        console.log('✅ Prosseguindo com inicialização...');
+        try {
+            initializeFormulario(elementosDisponiveis);
+        } catch (error) {
+            console.error('❌ Erro durante inicialização do formulário:', error);
+        }
+    } else if (retries > 0) {
+        console.log(`⏳ Aguardando ${delay}ms antes da próxima tentativa...`);
+        setTimeout(() => waitForElements(retries - 1, delay), delay);
+    } else {
+        console.warn('⚠️ Elementos não encontrados após todas as tentativas. Inicializando mesmo assim...');
+        try {
+            initializeFormulario({});
+        } catch (error) {
+            console.error('❌ Erro durante inicialização do formulário:', error);
+        }
+    }
+}
+
+// Função para detectar se estamos editando uma ocorrência existente
+function isEditMode() {
+    // Verificar se há valores preenchidos nos campos principais
+    // Agora que os campos de data têm IDs explícitos, podemos usá-los
+    const hasData = $('#id_data_notificacao').val() || 
+                   $('#id_nome_paciente').val() || 
+                   $('#id_num_registro').val() ||
+                   $('input[name="nome_paciente"]').val() ||
+                   $('input[name="num_registro"]').val();
+    
+    // Verificar também se há um ID de ocorrência na URL (indicativo de edição)
+    const urlPath = window.location.pathname;
+    const isEditUrl = urlPath.includes('/edit/') || urlPath.match(/\/\d+\/$/);
+    
+    const editMode = (hasData && hasData.length > 0) || isEditUrl;
+    console.log(`🔍 Detecção de modo: dados=${!!hasData}, URL=${isEditUrl}, modo=${editMode ? 'EDIÇÃO' : 'CRIAÇÃO'}`);
+    
+    return editMode;
+}
+
+// Função para verificar campos de data (apenas para debug)
+function verificarCamposData() {
+    console.log('📅 Verificando campos de data...');
+    
+    const dateFields = [
+        'id_data_notificacao', 'id_data_acidente', 'id_data_cadastro', 'id_data_nascimento',
+        'id_data_investigacao', 'id_data_atendimento', 'id_data_transferencia', 'id_data_cadastro_atendimento'
+    ];
+    
+    dateFields.forEach(fieldId => {
+        const $field = $(`#${fieldId}`);
+        if ($field.length > 0) {
+            const currentValue = $field.val();
+            console.log(`📅 Campo ${fieldId}: valor atual = "${currentValue}"`);
         }
     });
 }
 
 // Inicialização quando o documento estiver pronto
 $(document).ready(function() {
-    console.log('Inicializando formulário com modais de pesquisa...');
+    console.log('📄 DOM ready - aguardando elementos...');
     
-    // Verificar se os elementos UF e Município existem
-    console.log('🔍 Verificando elementos UF e Município no document.ready:');
-    console.log('   - UF Notificação:', $('#id_uf_notificacao').length ? 'Existe' : 'Não Existe');
-    console.log('   - Município Notificação:', $('#id_municipio_notificacao').length ? 'Existe' : 'Não Existe');
-    console.log('   - UF Residência:', $('#id_uf_residencia').length ? 'Existe' : 'Não Existe');
-    console.log('   - Município Residência:', $('#id_municipio_residencia').length ? 'Existe' : 'Não Existe');
-    console.log('   - UF Transferência:', $('#id_uf_transferencia').length ? 'Existe' : 'Não Existe');
-    console.log('   - Município Transferência:', $('#id_municipio_transferencia').length ? 'Existe' : 'Não Existe');
-
-    // Gatilho para carregar municípios ao mudar o estado
-    $('#id_uf_notificacao').on('change', function() {
-        var ufId = $(this).val();
-        console.log('🔄 UF Notificação mudou para:', ufId);
-        
-        // Limpar município atual
-        $('#id_municipio_notificacao').val('');
-        
-        if (ufId) {
-            loadMunicipios(ufId, '#id_municipio_notificacao');
-        } else {
-            $('#id_municipio_notificacao').empty().append('<option value="">Selecione...</option>');
-        }
-    });
+    // Detectar modo de edição
+    const editMode = isEditMode();
+    console.log(`🔍 Modo detectado: ${editMode ? 'EDIÇÃO' : 'CRIAÇÃO'}`);
     
-    $('#id_uf_residencia').on('change', function() {
-        var ufId = $(this).val();
-        console.log('🔄 UF Residência mudou para:', ufId);
-        
-        // Limpar município atual
-        $('#id_municipio_residencia').val('');
-        
-        if (ufId) {
-            loadMunicipios(ufId, '#id_municipio_residencia');
-        } else {
-            $('#id_municipio_residencia').empty().append('<option value="">Selecione...</option>');
-        }
-    });
+    // Verificar campos de data
+    verificarCamposData();
     
-    $('#id_uf_transferencia').on('change', function() {
-        var ufId = $(this).val();
-        console.log('🔄 UF Transferência mudou para:', ufId);
-        
-        // Limpar município atual
-        $('#id_municipio_transferencia').val('');
-        
-        if (ufId) {
-            loadMunicipios(ufId, '#id_municipio_transferencia');
-        } else {
-            $('#id_municipio_transferencia').empty().append('<option value="">Selecione...</option>');
-        }
-    });
-
-    // Carregar municípios iniciais se já houver UF selecionada
-    console.log('🔍 Verificando UFs já selecionadas para carregamento inicial...');
-    if ($('#id_uf_notificacao').val()) {
-        console.log('📍 Carregando municípios iniciais para notificação');
-        loadMunicipios($('#id_uf_notificacao').val(), '#id_municipio_notificacao');
-    }
-    if ($('#id_uf_residencia').val()) {
-        console.log('📍 Carregando municípios iniciais para residência');
-        loadMunicipios($('#id_uf_residencia').val(), '#id_municipio_residencia');
-    }
-    if ($('#id_uf_transferencia').val()) {
-        console.log('📍 Carregando municípios iniciais para transferência');
-        loadMunicipios($('#id_uf_transferencia').val(), '#id_municipio_transferencia');
-    }
+    // Aguardar um pouco mais para garantir que o formulário foi renderizado
+    setTimeout(() => {
+        waitForElements();
+        // Verificar novamente após inicialização
+        setTimeout(verificarCamposData, 500);
+        // Inicializar municípios específicos após um delay adicional
+        setTimeout(initializeMunicipiosEspecificos, 1000);
+    }, 200);
 });

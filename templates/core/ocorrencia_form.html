@@ -798,29 +798,13 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/ocorrencia-form.js' %}"></script>
 <script>
-// Aguardar jQuery estar disponível
-(function() {
-    function initScript() {
-        if (typeof $ === 'undefined') {
-            console.log('⏳ Aguardando jQuery...');
-            setTimeout(initScript, 100);
-            return;
-        }
-        
-        console.log('✅ jQuery disponível, carregando script...');
-        
-        // Carregar o script principal via AJAX
-        $.getScript('{% static "js/ocorrencia-form.js" %}')
-            .done(function() {
-                console.log('✅ Script carregado com sucesso');
-            })
-            .fail(function() {
-                console.error('❌ Erro ao carregar script');
-            });
-    }
-    
-    initScript();
-})();
+// Verificar se o script foi carregado corretamente
+if (typeof initializeFormulario === 'function') {
+    console.log('✅ Script ocorrencia-form.js carregado com sucesso');
+} else {
+    console.error('❌ Erro: função initializeFormulario não encontrada');
+}
 </script>
 {% endblock %}

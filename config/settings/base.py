@@ -86,6 +86,16 @@ TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True
 
+# Configurações de formato de data para formulários HTML5
+DATE_INPUT_FORMATS = [
+    '%Y-%m-%d',  # Formato ISO para campos HTML5 date
+    '%d/%m/%Y',  # Formato brasileiro
+    '%m/%d/%Y',  # Formato americano
+]
+
+# Desabilitar localização para campos de data em formulários
+USE_L10N = False
+
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'

@@ -308,45 +308,64 @@ def autocomplete_estabelecimentos(request):
 # View para carregar municípios por estado
 @csrf_exempt
 def load_municipios(request):
-    """Carregar municípios por estado"""
+    """Carregar municípios por estado ou todos os municípios"""
     try:
         estado_id = request.GET.get('estado_id')
         print(f"🔍 Carregando municípios para estado_id: {estado_id}")
         
-        if not estado_id:
-            print("⚠️ Estado ID não fornecido")
-            return JsonResponse({
-                'municipios': [],
-                'error': 'Estado ID não fornecido'
-            })
+        if estado_id:
+            # Verificar se o estado existe
+            try:
+                estado = Estado.objects.get(idestado=estado_id)
+                print(f"📍 Estado encontrado: {estado.descricao}")
+            except Estado.DoesNotExist:
+                print(f"❌ Estado não encontrado: {estado_id}")
+                return JsonResponse({
+                    'municipios': [],
+                    'error': f'Estado {estado_id} não encontrado',
+                    'success': False
+                })
+            
+            # Buscar municípios do estado específico
+            municipios = Municipios.objects.filter(
+                id_uf_id=estado_id,
+                nome_municipio__isnull=False
+            ).exclude(
+                nome_municipio__exact=''
+            ).order_by('nome_municipio')
+            
+            count = municipios.count()
+            print(f"📊 Encontrados {count} municípios para estado {estado_id}")
+        else:
+            # Carregar todos os municípios
+            municipios = Municipios.objects.filter(
+                nome_municipio__isnull=False
+            ).exclude(
+                nome_municipio__exact=''
+            ).order_by('nome_municipio')
+            
+            count = municipios.count()
+            print(f"📊 Carregando todos os {count} municípios")
         
-        # Verificar se o estado existe
-        try:
-            estado = Estado.objects.get(idestado=estado_id)
-            print(f"📍 Estado encontrado: {estado.descricao}")
-        except Estado.DoesNotExist:
-            print(f"❌ Estado não encontrado: {estado_id}")
-            return JsonResponse({
-                'municipios': [],
-                'error': f'Estado {estado_id} não encontrado'
-            })
-        
-        # Buscar municípios
-        municipios = Municipios.objects.filter(id_uf_id=estado_id).order_by('nome_municipio')
-        count = municipios.count()
-        print(f"📊 Encontrados {count} municípios para estado {estado_id}")
-        
+        # Processar dados dos municípios
         data = []
         for m in municipios:
-            if m.nome_municipio:  # Verificar se o nome não é None
-                data.append({
+            if m.nome_municipio and m.nome_municipio.strip():  # Verificar se o nome não é vazio
+                municipio_data = {
                     'id': m.id_municipio, 
-                    'nome': m.nome_municipio
-                })
+                    'nome': m.nome_municipio.strip()
+                }
+                # Adicionar nome do estado se disponível
+                if hasattr(m, 'id_uf') and m.id_uf:
+                    municipio_data['uf'] = m.nome_uf or (m.id_uf.descricao if hasattr(m.id_uf, 'descricao') else '')
+                
+                data.append(municipio_data)
         
         result = {
             'municipios': data,
-            'success': True
+            'success': True,
+            'total': len(data),
+            'estado_id': estado_id
         }
         
         print(f"✅ Retornando {len(data)} municípios válidos")
@@ -359,5 +378,6 @@ def load_municipios(request):
         return JsonResponse({
             'error': str(e), 
             'municipios': [],
-            'success': False
+            'success': False,
+            'total': 0
         }, status=500)
