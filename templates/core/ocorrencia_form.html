@@ -146,6 +146,16 @@
                             {% endif %}
                         </div>
                     </div>
+                    <div class="row g-3 mt-3">
+                        <div class="col-12 d-flex justify-content-between">
+                            <a href="{% url 'core:ocorrencia_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="button" class="btn btn-primary" onclick="goToNextTab('paciente-tab')">
+                                Próximo <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -277,6 +287,16 @@
                             {% endif %}
                         </div>
                     </div>
+                    <div class="row g-3 mt-3">
+                        <div class="col-12 d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" onclick="goToPreviousTab('notificacao-tab')">
+                                <i class="fas fa-arrow-left"></i> Anterior
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="goToNextTab('endereco-tab')">
+                                Próximo <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -401,6 +421,16 @@
                             {% if form.ponto_referencia.errors %}
                                 <div class="text-danger">{{ form.ponto_referencia.errors }}</div>
                             {% endif %}
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-3">
+                        <div class="col-12 d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" onclick="goToPreviousTab('paciente-tab')">
+                                <i class="fas fa-arrow-left"></i> Anterior
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="goToNextTab('acidente-tab')">
+                                Próximo <i class="fas fa-arrow-right"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -552,6 +582,16 @@
                             {% endif %}
                         </div>
                     </div>
+                    <div class="row g-3 mt-3">
+                        <div class="col-12 d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" onclick="goToPreviousTab('endereco-tab')">
+                                <i class="fas fa-arrow-left"></i> Anterior
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="goToNextTab('transferencia-tab')">
+                                Próximo <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -615,6 +655,16 @@
                             {% endif %}
                         </div>
                     </div>
+                    <div class="row g-3 mt-3">
+                        <div class="col-12 d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" onclick="goToPreviousTab('acidente-tab')">
+                                <i class="fas fa-arrow-left"></i> Anterior
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="goToNextTab('investigador-tab')">
+                                Próximo <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -670,20 +720,17 @@
                             {% endif %}
                         </div>
                     </div>
+                    <div class="row g-3 mt-3">
+                        <div class="col-12 d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" onclick="goToPreviousTab('transferencia-tab')">
+                                <i class="fas fa-arrow-left"></i> Anterior
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> {{ button_text }}
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card mt-3">
-        <div class="card-body">
-            <div class="d-flex justify-content-between">
-                <a href="{% url 'core:ocorrencia_list' %}" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Cancelar
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> {{ button_text }}
-                </button>
             </div>
         </div>
     </div>
@@ -800,11 +847,60 @@
 {% block extra_js %}
 <script src="{% static 'js/ocorrencia-form.js' %}"></script>
 <script>
-// Verificar se o script foi carregado corretamente
-if (typeof initializeFormulario === 'function') {
-    console.log('✅ Script ocorrencia-form.js carregado com sucesso');
-} else {
-    console.error('❌ Erro: função initializeFormulario não encontrada');
+// Funções de navegação como fallback (caso não sejam carregadas do arquivo externo)
+if (typeof goToNextTab === 'undefined') {
+    function goToNextTab(nextTabId) {
+        console.log('➡️ Navegando para próxima aba:', nextTabId);
+        const nextTab = document.getElementById(nextTabId);
+        if (nextTab) {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tab) {
+                const nextTabButton = new bootstrap.Tab(nextTab);
+                nextTabButton.show();
+            } else {
+                $(nextTab).tab('show');
+            }
+        }
+    }
 }
+
+if (typeof goToPreviousTab === 'undefined') {
+    function goToPreviousTab(previousTabId) {
+        console.log('⬅️ Navegando para aba anterior:', previousTabId);
+        const previousTab = document.getElementById(previousTabId);
+        if (previousTab) {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tab) {
+                const previousTabButton = new bootstrap.Tab(previousTab);
+                previousTabButton.show();
+            } else {
+                $(previousTab).tab('show');
+            }
+        }
+    }
+}
+
+// Aguardar um pouco para garantir que o script foi carregado
+window.addEventListener('load', function() {
+    console.log('📄 Página carregada completamente');
+    
+    // Verificar se as funções de navegação foram definidas
+    if (typeof goToNextTab === 'function') {
+        console.log('✅ Função goToNextTab definida corretamente');
+    } else {
+        console.error('❌ Erro: função goToNextTab não encontrada');
+    }
+    
+    if (typeof goToPreviousTab === 'function') {
+        console.log('✅ Função goToPreviousTab definida corretamente');
+    } else {
+        console.error('❌ Erro: função goToPreviousTab não encontrada');
+    }
+    
+    // Verificar se o script foi carregado corretamente
+    if (typeof initializeFormulario === 'function') {
+        console.log('✅ Script ocorrencia-form.js carregado com sucesso');
+    } else {
+        console.error('❌ Erro: função initializeFormulario não encontrada');
+    }
+});
 </script>
 {% endblock %}

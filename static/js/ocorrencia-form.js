@@ -621,6 +621,40 @@ function verificarCamposData() {
     });
 }
 
+// Funções para navegação entre abas - definidas globalmente
+function goToNextTab(nextTabId) {
+    console.log('➡️ Navegando para próxima aba:', nextTabId);
+    const nextTab = document.getElementById(nextTabId);
+    if (nextTab) {
+        if (typeof bootstrap !== 'undefined') {
+            const nextTabButton = new bootstrap.Tab(nextTab);
+            nextTabButton.show();
+        } else {
+            console.error('❌ Bootstrap não está disponível');
+            // Fallback usando jQuery
+            $(nextTab).tab('show');
+        }
+    }
+}
+
+function goToPreviousTab(previousTabId) {
+    console.log('⬅️ Navegando para aba anterior:', previousTabId);
+    const previousTab = document.getElementById(previousTabId);
+    if (previousTab) {
+        if (typeof bootstrap !== 'undefined') {
+            const previousTabButton = new bootstrap.Tab(previousTab);
+            previousTabButton.show();
+        } else {
+            console.error('❌ Bootstrap não está disponível');
+            // Fallback usando jQuery
+            $(previousTab).tab('show');
+        }
+    }
+}
+
+// Expor funções globalmente para debug
+console.log('✅ Funções de navegação definidas:', typeof goToNextTab, typeof goToPreviousTab);
+
 // Inicialização quando o documento estiver pronto
 $(document).ready(function() {
     console.log('📄 DOM ready - aguardando elementos...');
