@@ -95,11 +95,52 @@ class OcorrenciaCreateView(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Nova Ocorrência'
         context['button_text'] = 'Salvar'
+        
+        # Formset para partes atingidas
+        if self.object:
+            context['parte_atingida_formset'] = OcorrenciaParteAtingidaFormSet(
+                instance=self.object
+            )
+        else:
+            context['parte_atingida_formset'] = OcorrenciaParteAtingidaFormSet()
+        
         return context
     
     def form_valid(self, form):
-        messages.success(self.request, 'Ocorrência criada com sucesso!')
-        return super().form_valid(form)
+        with transaction.atomic():
+            # Salvar o objeto primeiro
+            response = super().form_valid(form)
+            
+            print(f"\n🔍 POST data recebido (CREATE): {self.request.POST}")
+            
+            # Salvar formset de partes atingidas
+            parte_atingida_formset = OcorrenciaParteAtingidaFormSet(
+                self.request.POST, instance=self.object
+            )
+            
+            print(f"📊 Formset criado. Total de forms: {len(parte_atingida_formset.forms)}")
+            
+            if parte_atingida_formset.is_valid():
+                print("✅ Formset válido! Iniciando save...")
+                # O método save do formset agora gerencia corretamente as instâncias
+                parte_atingida_formset.save()
+                messages.success(self.request, 'Ocorrência criada com sucesso!')
+            else:
+                # Se o formset não for válido, mostrar erros detalhados
+                errors = parte_atingida_formset.errors
+                non_form_errors = parte_atingida_formset.non_form_errors()
+                error_msg = 'Erro ao salvar partes atingidas.'
+                if non_form_errors:
+                    error_msg += f' {non_form_errors}'
+                messages.error(self.request, error_msg)
+                print(f"❌ Erros do formset: {errors}")
+                print(f"❌ Erros não-form: {non_form_errors}")
+                # Imprimir erros de cada formulário
+                for form_index, form_errors in enumerate(errors):
+                    if form_errors:
+                        print(f"❌ Form {form_index}: {form_errors}")
+                
+        return response
 
 class OcorrenciaUpdateView(LoginRequiredMixin, UpdateView):
     """Editar ocorrência existente"""
@@ -117,13 +158,52 @@ class OcorrenciaUpdateView(LoginRequiredMixin, UpdateView):
             context['parte_atingida_formset'] = OcorrenciaParteAtingidaFormSet(
                 instance=self.object
             )
+        else:
+            context['parte_atingida_formset'] = OcorrenciaParteAtingidaFormSet()
         
         return context
     
     def form_valid(self, form):
-        messages.success(self.request, 'Ocorrência atualizada com sucesso!')
-        
-        return super().form_valid(form)
+        with transaction.atomic():
+            # Salvar o objeto primeiro
+            response = super().form_valid(form)
+            
+            print(f"\n🔍 POST data recebido:")
+            # Mostrar apenas dados relevantes do formset
+            for key in self.request.POST:
+                if 'ocorrenciahastipoparteatingida' in key:
+                    print(f"  {key}: {self.request.POST.get(key)}")
+            
+            # Salvar formset de partes atingidas
+            parte_atingida_formset = OcorrenciaParteAtingidaFormSet(
+                self.request.POST, instance=self.object
+            )
+            
+            print(f"📊 Formset criado. Total de forms: {len(parte_atingida_formset.forms)}")
+            print(f"📊 TOTAL_FORMS: {parte_atingida_formset.total_form_count()}")
+            print(f"📊 INITIAL_FORMS: {parte_atingida_formset.initial_form_count()}")
+            
+            if parte_atingida_formset.is_valid():
+                print("✅ Formset válido! Iniciando save...")
+                # O método save do formset agora gerencia corretamente as instâncias
+                parte_atingida_formset.save()
+                messages.success(self.request, 'Ocorrência atualizada com sucesso!')
+            else:
+                # Se o formset não for válido, mostrar erros detalhados
+                errors = parte_atingida_formset.errors
+                non_form_errors = parte_atingida_formset.non_form_errors()
+                error_msg = 'Erro ao salvar partes atingidas.'
+                if non_form_errors:
+                    error_msg += f' {non_form_errors}'
+                messages.error(self.request, error_msg)
+                print(f"❌ Erros do formset: {errors}")
+                print(f"❌ Erros não-form: {non_form_errors}")
+                # Imprimir erros de cada formulário
+                for form_index, form_errors in enumerate(errors):
+                    if form_errors:
+                        print(f"❌ Form {form_index}: {form_errors}")
+                
+        return response
 
 
 class OcorrenciaDeleteView(LoginRequiredMixin, DeleteView):

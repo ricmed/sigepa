@@ -318,12 +318,357 @@ EvolucaoTratamentoProcedimentoFormSet = inlineformset_factory(
     }
 )
 
-OcorrenciaParteAtingidaFormSet = inlineformset_factory(
+# Form customizado para partes atingidas (para lidar com chave primária composta)
+class OcorrenciaParteAtingidaForm(ModelForm):
+    class Meta:
+        model = OcorrenciaHasTipoParteAtingida
+        fields = ('tipo_parte_atingida_idtipo_parte_atingida',)
+        widgets = {
+            'tipo_parte_atingida_idtipo_parte_atingida': forms.Select(attrs={'class': 'form-select'})
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Tornar o campo não obrigatório para permitir formulários vazios
+        self.fields['tipo_parte_atingida_idtipo_parte_atingida'].required = False
+        
+        # Tornar o campo pk não obrigatório e oculto
+        if 'pk' in self.fields:
+            self.fields['pk'].required = False
+            self.fields['pk'].widget = forms.HiddenInput()
+    
+    def full_clean(self):
+        """Override para garantir validação correta sem erros de pk"""
+        # Remover pk dos erros antes da validação
+        if hasattr(self, '_errors') and self._errors is not None and 'pk' in self._errors:
+            del self._errors['pk']
+        
+        super().full_clean()
+        
+        # Remover pk dos erros após a validação também
+        if hasattr(self, '_errors') and self._errors is not None and 'pk' in self._errors:
+            del self._errors['pk']
+    
+    def has_changed(self):
+        """Override para considerar mudanças apenas quando há dados válidos"""
+        # Se não há cleaned_data ainda, verificar os dados brutos
+        if not hasattr(self, 'cleaned_data') or not self.cleaned_data:
+            # Verificar se há algum tipo_parte_atingida nos dados brutos
+            if hasattr(self, 'data') and self.data:
+                field_name = f'{self.prefix}-tipo_parte_atingida_idtipo_parte_atingida'
+                if field_name in self.data and self.data.get(field_name):
+                    return True
+            return False
+        
+        # Se há cleaned_data, verificar se há um tipo_parte_atingida selecionado
+        if not self.cleaned_data.get('tipo_parte_atingida_idtipo_parte_atingida'):
+            return False
+        
+        return True  # Sempre considerar que mudou se há um tipo_parte_atingida válido
+
+# Formset para partes atingidas com tratamento de campos vazios
+class OcorrenciaParteAtingidaFormSet(inlineformset_factory(
     Ocorrencia,
     OcorrenciaHasTipoParteAtingida,
-    fields=('tipo_parte_atingida_idtipo_parte_atingida',),
-    extra=1,
-    widgets={
-        'tipo_parte_atingida_idtipo_parte_atingida': forms.Select(attrs={'class': 'form-select'})
-    }
-)
+    form=OcorrenciaParteAtingidaForm,
+    extra=0,  # Não mostrar formulário vazio por padrão
+    can_delete=True
+)):
+    def get_form_kwargs(self, index):
+        """Override para limpar campos pk problemáticos antes de construir o formulário"""
+        kwargs = super().get_form_kwargs(index)
+        
+        # Se há dados, verificar e limpar o campo pk se necessário
+        if 'data' in kwargs and kwargs['data']:
+            from django.http import QueryDict
+            import json
+            
+            prefix = self.add_prefix(index)
+            pk_key = f'{prefix}-pk'
+            
+            # Verificar se o campo pk existe nos dados
+            if pk_key in kwargs['data']:
+                pk_value = kwargs['data'].get(pk_key, '')
+                should_remove = False
+                
+                # Verificar se está vazio ou inválido
+                if not pk_value or (isinstance(pk_value, str) and pk_value.strip() == ''):
+                    should_remove = True
+                else:
+                    # Tentar validar se é JSON válido
+                    try:
+                        if isinstance(pk_value, str):
+                            json.loads(pk_value)
+                    except (json.JSONDecodeError, ValueError):
+                        should_remove = True
+                
+                # Se deve remover, criar cópia dos dados sem o pk
+                if should_remove:
+                    data = kwargs['data']
+                    if isinstance(data, QueryDict):
+                        if not data._mutable:
+                            data = data.copy()
+                    else:
+                        data = dict(data) if not isinstance(data, dict) else data.copy()
+                    
+                    if isinstance(data, QueryDict):
+                        data.pop(pk_key, None)
+                    else:
+                        data.pop(pk_key, None)
+                    
+                    kwargs['data'] = data
+                    print(f"🧹 Removido pk inválido no get_form_kwargs: {pk_key}")
+        
+        return kwargs
+    
+    def add_fields(self, form, index):
+        """Override para tornar o campo pk não obrigatório"""
+        super().add_fields(form, index)
+        # Tornar o campo pk não obrigatório e oculto
+        if 'pk' in form.fields:
+            form.fields['pk'].required = False
+            form.fields['pk'].widget = forms.HiddenInput()
+    
+    def _construct_form(self, i, **kwargs):
+        """Override para tratar erros de pk antes da construção do formulário"""
+        # Verificar e limpar pk inválido antes de construir o formulário
+        if 'data' in kwargs and kwargs['data']:
+            from django.http import QueryDict
+            import json
+            
+            prefix = self.add_prefix(i)
+            pk_key = f'{prefix}-pk'
+            
+            if pk_key in kwargs['data']:
+                pk_value = kwargs['data'].get(pk_key, '')
+                should_remove = False
+                
+                # Verificar se está vazio ou inválido
+                if not pk_value or (isinstance(pk_value, str) and pk_value.strip() == ''):
+                    should_remove = True
+                else:
+                    # Tentar validar se é JSON válido
+                    try:
+                        if isinstance(pk_value, str):
+                            json.loads(pk_value)
+                    except (json.JSONDecodeError, ValueError):
+                        should_remove = True
+                
+                if should_remove:
+                    # Criar cópia dos dados sem o pk
+                    data = kwargs['data']
+                    if isinstance(data, QueryDict):
+                        if not data._mutable:
+                            data = data.copy()
+                    else:
+                        data = dict(data) if not isinstance(data, dict) else data.copy()
+                    
+                    # Remover o pk inválido
+                    if isinstance(data, QueryDict):
+                        data.pop(pk_key, None)
+                    else:
+                        data.pop(pk_key, None)
+                    
+                    kwargs['data'] = data
+                    print(f"🧹 Removido pk inválido em _construct_form: {pk_key}")
+        
+        # Chamar o método original
+        try:
+            return super()._construct_form(i, **kwargs)
+        except Exception as e:
+            print(f"❌ Erro ao construir form {i}: {e}")
+            # Se falhar, tentar novamente sem o campo pk
+            if 'data' in kwargs:
+                from django.http import QueryDict
+                prefix = self.add_prefix(i)
+                pk_key = f'{prefix}-pk'
+                
+                data = kwargs['data']
+                if isinstance(data, QueryDict):
+                    if not data._mutable:
+                        data = data.copy()
+                else:
+                    data = dict(data) if not isinstance(data, dict) else data.copy()
+                
+                if isinstance(data, QueryDict):
+                    data.pop(pk_key, None)
+                else:
+                    data.pop(pk_key, None)
+                
+                kwargs['data'] = data
+                print(f"🔄 Tentando novamente sem pk: {pk_key}")
+                return super()._construct_form(i, **kwargs)
+            else:
+                raise
+    
+    def __init__(self, data=None, *args, **kwargs):
+        # Remover campos pk VAZIOS ou INVÁLIDOS dos dados ANTES de chamar super().__init__
+        # Isso é necessário porque o CompositePrimaryKey causa problemas com valores vazios
+        if data:
+            from django.http import QueryDict
+            import json
+            
+            # Criar uma cópia mutável dos dados
+            if isinstance(data, QueryDict):
+                if not data._mutable:
+                    data = data.copy()
+            else:
+                data = dict(data) if not isinstance(data, dict) else data.copy()
+            
+            # Remover campos pk que estão vazios ou não são JSON válidos
+            keys_to_remove = []
+            for key in list(data.keys()):
+                if key.endswith('-pk'):
+                    value = data.get(key, '')
+                    should_remove = False
+                    
+                    # Remover se estiver vazio
+                    if not value or (isinstance(value, str) and value.strip() == ''):
+                        should_remove = True
+                    else:
+                        # Tentar validar se é JSON válido
+                        try:
+                            if isinstance(value, str):
+                                json.loads(value)
+                        except (json.JSONDecodeError, ValueError):
+                            # Se não for JSON válido, remover
+                            should_remove = True
+                    
+                    if should_remove:
+                        keys_to_remove.append(key)
+            
+            # Remover as chaves problemáticas
+            for key in keys_to_remove:
+                if isinstance(data, QueryDict):
+                    data.pop(key, None)
+                else:
+                    data.pop(key, None)
+                print(f"🧹 Removido campo pk vazio/inválido: {key}")
+        
+        super().__init__(data, *args, **kwargs)
+    
+    def clean(self):
+        """Remover formulários vazios da validação"""
+        if any(self.errors):
+            return
+        
+        # Filtrar formulários vazios ou deletados
+        cleaned_data = []
+        for form in self.forms:
+            if form.cleaned_data:
+                # Se o formulário está marcado para deletar, ignorar
+                if form.cleaned_data.get('DELETE'):
+                    continue
+                # Se não tem tipo_parte_atingida selecionado, ignorar (formulário vazio)
+                if not form.cleaned_data.get('tipo_parte_atingida_idtipo_parte_atingida'):
+                    continue
+                cleaned_data.append(form.cleaned_data)
+        
+        return cleaned_data
+    
+    def is_valid(self):
+        """Override para validação customizada e remover erros de pk"""
+        # Validar normalmente
+        result = super().is_valid()
+        
+        # Remover erros de pk de todos os formulários
+        for form in self.forms:
+            if hasattr(form, '_errors') and form._errors is not None and 'pk' in form._errors:
+                del form._errors['pk']
+                # Se não há mais erros, considerar o form válido
+                if not form._errors:
+                    form._errors = {}
+        
+        # Recalcular se o formset é válido após remover erros de pk
+        has_errors = any(form.errors for form in self.forms)
+        has_non_form_errors = bool(self.non_form_errors())
+        
+        return not has_errors and not has_non_form_errors
+    
+    def save(self, commit=True):
+        """Override para salvar corretamente instâncias com chave primária composta"""
+        print("🔄 Iniciando save do formset")
+        print(f"📊 Total de formulários: {len(self.forms)}")
+        
+        if not commit:
+            # Se commit=False, retornar apenas as instâncias novas/modificadas
+            print("⚠️ Commit=False, retornando instâncias sem salvar")
+            return super().save(commit=False)
+        
+        # Salvar com commit=True
+        saved_instances = []
+        
+        # Processar cada formulário
+        for i, form in enumerate(self.forms):
+            print(f"\n📋 Processando form {i}")
+            print(f"  🔍 Form é válido? {form.is_valid()}")
+            print(f"  🔍 Form tem erros? {form.errors if hasattr(form, 'errors') else 'N/A'}")
+            print(f"  🔍 Form has_changed? {form.has_changed()}")
+            
+            # Verificar se o formulário tem cleaned_data
+            if not hasattr(form, 'cleaned_data'):
+                print(f"  ⚠️ Form {i} não tem atributo cleaned_data")
+                continue
+                
+            if not form.cleaned_data:
+                print(f"  ⏭️ Form {i} sem cleaned_data (vazio), pulando")
+                # Tentar entender por que está vazio
+                if hasattr(form, 'data') and form.data:
+                    print(f"  🔍 Form prefix: {form.prefix}")
+                    # Buscar campos específicos deste formulário
+                    tipo_key = f'{form.prefix}-tipo_parte_atingida_idtipo_parte_atingida'
+                    print(f"  🔍 Valor do campo {tipo_key}: {form.data.get(tipo_key, 'NÃO ENCONTRADO')}")
+                else:
+                    print(f"  🔍 Form não tem data")
+                continue
+            
+            print(f"  📊 cleaned_data do form {i}: {form.cleaned_data}")
+                
+            # Verificar se deve ser deletado
+            if form.cleaned_data.get('DELETE'):
+                print(f"  🗑️ Form {i} marcado para DELETE")
+                if form.instance.pk:
+                    print(f"  ❌ Deletando instância com pk: {form.instance.pk}")
+                    form.instance.delete()
+                continue
+            
+            # Verificar se há dados válidos
+            tipo_parte = form.cleaned_data.get('tipo_parte_atingida_idtipo_parte_atingida')
+            if not tipo_parte:
+                print(f"  ⏭️ Form {i} sem tipo_parte_atingida, pulando")
+                continue
+            
+            print(f"  ✅ Form {i} tem tipo_parte: {tipo_parte}")
+            
+            # Criar ou atualizar instância
+            if form.instance.pk:
+                print(f"  🔄 Atualizando instância existente: {form.instance.pk}")
+                # Instância existente - atualizar
+                form.instance.tipo_parte_atingida_idtipo_parte_atingida = tipo_parte
+                form.instance.save()
+                saved_instances.append(form.instance)
+            else:
+                print(f"  ➕ Criando nova instância")
+                # Nova instância
+                # Verificar se já existe essa combinação
+                existing = self.instance.ocorrenciahastipoparteatingida_set.filter(
+                    tipo_parte_atingida_idtipo_parte_atingida=tipo_parte
+                ).first()
+                
+                if existing:
+                    print(f"  ⚠️ Já existe uma instância com esse tipo_parte: {existing.pk}")
+                    saved_instances.append(existing)
+                else:
+                    print(f"  💾 Criando novo registro no banco")
+                    # Criar manualmente sem usar form.save() para evitar problemas com pk
+                    new_instance = OcorrenciaHasTipoParteAtingida(
+                        ocorrencia=self.instance,
+                        tipo_parte_atingida_idtipo_parte_atingida=tipo_parte
+                    )
+                    new_instance.save()
+                    print(f"  ✅ Registro criado: ocorrencia={self.instance.pk}, tipo_parte={tipo_parte.pk}")
+                    saved_instances.append(new_instance)
+        
+        print(f"\n✅ Formset salvo. Total de instâncias salvas: {len(saved_instances)}")
+        return saved_instances
+    

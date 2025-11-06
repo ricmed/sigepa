@@ -655,6 +655,143 @@ function goToPreviousTab(previousTabId) {
 // Expor funções globalmente para debug
 console.log('✅ Funções de navegação definidas:', typeof goToNextTab, typeof goToPreviousTab);
 
+// Funções para manipular o formset de partes atingidas
+function addParteAtingidaForm() {
+    console.log('➕ Adicionando novo formulário de parte atingida');
+    
+    const formsetContainer = $('#parte-atingida-formset');
+    console.log('📦 Container encontrado:', formsetContainer.length > 0);
+    
+    // Buscar o campo TOTAL_FORMS de forma mais robusta
+    let totalForms = null;
+    
+    // Primeiro, buscar por qualquer input que contenha TOTAL_FORMS dentro do formsetContainer
+    totalForms = formsetContainer.find('input[name*="TOTAL_FORMS"]');
+    console.log('🔍 Busca por TOTAL_FORMS:', totalForms.length);
+    
+    if (totalForms.length === 0) {
+        console.error('❌ Campo TOTAL_FORMS não encontrado dentro do formset!');
+        console.log('🔍 Todos os inputs no formset:', formsetContainer.find('input').map(function() {
+            return {
+                name: $(this).attr('name'),
+                id: $(this).attr('id'),
+                type: $(this).attr('type')
+            };
+        }).get());
+        return;
+    }
+    
+    const formCount = parseInt(totalForms.val());
+    const formsetPrefix = totalForms.attr('name').replace('-TOTAL_FORMS', '');
+    
+    console.log('📊 Total de forms atual:', formCount);
+    console.log('📋 Campo TOTAL_FORMS encontrado:', totalForms.attr('name'));
+    console.log('📛 Prefixo do formset:', formsetPrefix);
+    
+    // Buscar o template do form (primeiro form)
+    const template = formsetContainer.find('.parte-atingida-form').first();
+    console.log('📄 Template encontrado:', template.length > 0);
+    
+    if (template.length === 0) {
+        console.error('❌ Nenhum formulário encontrado no template!');
+        return;
+    }
+    
+    const newForm = template.clone(true);
+    console.log('🔄 Form clonado:', newForm.length > 0);
+    
+    // Remover o label do template clonado
+    newForm.find('label').remove();
+    
+    // Atualizar o índice do novo form
+    newForm.find('input, select').each(function() {
+        const name = $(this).attr('name');
+        const id = $(this).attr('id');
+        
+        if (name) {
+            // Substituir o índice no nome usando o prefixo correto
+            const regex = new RegExp(formsetPrefix + '-\\d+-');
+            const newName = name.replace(regex, formsetPrefix + '-' + formCount + '-');
+            $(this).attr('name', newName);
+            
+            // Substituir o índice no id
+            if (id) {
+                const idPrefix = 'id_' + formsetPrefix.replace(/-/g, '_');
+                const idRegex = new RegExp(idPrefix + '-\\d+-');
+                const newId = id.replace(idRegex, idPrefix + '-' + formCount + '-');
+                $(this).attr('id', newId);
+            }
+        }
+    });
+    
+    // Limpar valores dos campos ID e PK (para que seja um novo registro)
+    // Não removemos os campos, apenas limpamos os valores
+    newForm.find('input[name$="-id"]').val('');
+    newForm.find('input[name$="-pk"]').val('');
+    
+    // Limpar o valor do campo DELETE se existir
+    const deleteCheckbox = newForm.find('input[name$="-DELETE"]');
+    if (deleteCheckbox.length > 0) {
+        deleteCheckbox.prop('checked', false);
+        deleteCheckbox.val('');
+    }
+    
+    // Limpar o valor do select
+    newForm.find('select').val('');
+    
+    // Adicionar botão de remover
+    const removeButton = $('<button>')
+        .attr('type', 'button')
+        .addClass('btn btn-danger btn-sm w-100')
+        .html('<i class="fas fa-trash"></i>')
+        .on('click', function() {
+            removeParteAtingidaForm(this);
+        });
+    
+    newForm.find('.col-md-1').html(removeButton);
+    
+    // Inserir o novo formulário DENTRO do formsetContainer (no final)
+    formsetContainer.append(newForm);
+    
+    // Atualizar o total de forms
+    const newTotal = formCount + 1;
+    totalForms.val(newTotal);
+    
+    console.log('✅ Novo formulário adicionado. Total:', newTotal);
+    console.log('📋 Campos do novo form:', newForm.find('input, select').map(function() {
+        return {
+            name: $(this).attr('name'),
+            id: $(this).attr('id'),
+            value: $(this).val()
+        };
+    }).get());
+    console.log('📊 TOTAL_FORMS atualizado para:', totalForms.val());
+}
+
+function removeParteAtingidaForm(button) {
+    console.log('🗑️ Removendo formulário de parte atingida');
+    
+    const formContainer = $(button).closest('.parte-atingida-form');
+    
+    // Verificar se o form tem um ID (está salvo no banco)
+    const formId = formContainer.find('input[name$="-id"]').val();
+    
+    if (formId) {
+        // Se tem ID, marcar como deletado
+        const deleteCheckbox = formContainer.find('input[name$="-DELETE"]');
+        deleteCheckbox.prop('checked', true);
+        formContainer.hide();
+        console.log('📝 Form marcado como deletado (tem ID):', formId);
+    } else {
+        // Se não tem ID, apenas remover do DOM
+        formContainer.remove();
+        console.log('🗑️ Form removido do DOM (sem ID)');
+    }
+    
+    // Não atualizar o total de forms aqui, pois o Django gerencia isso
+    console.log('✅ Formulário removido');
+}
+
 // Inicialização quando o documento estiver pronto
 $(document).ready(function() {
     console.log('📄 DOM ready - aguardando elementos...');
