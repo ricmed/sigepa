@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -147,3 +147,12 @@ def profile(request):
     View para o perfil do usuário logado.
     """
     return render(request, 'usuarios/profile.html', {'user': request.user})
+
+
+def logout_view(request):
+    """
+    View personalizada para logout que aceita requisições GET.
+    """
+    logout(request)
+    messages.success(request, 'Você foi deslogado com sucesso!')
+    return redirect('usuarios:home')
