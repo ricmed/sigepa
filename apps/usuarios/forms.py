@@ -1,5 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+from django.core.exceptions import ValidationError
+from datetime import date
 from .models import Usuario
 
 
@@ -16,6 +18,13 @@ class UsuarioCreationForm(UserCreationForm):
     class Meta:
         model = Usuario
         fields = ('username', 'email', 'first_name', 'last_name', 'telefone', 'data_nascimento', 'password1', 'password2')
+    
+    def clean_data_nascimento(self):
+        """Valida que a data de nascimento não seja no futuro"""
+        data = self.cleaned_data.get('data_nascimento')
+        if data and data > date.today():
+            raise ValidationError('A data de nascimento não pode ser no futuro.')
+        return data
     
     def save(self, commit=True):
         user = super().save(commit=False)
