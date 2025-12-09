@@ -1,5 +1,7 @@
 from django import forms
 from django.forms import ModelForm, inlineformset_factory
+from django.core.exceptions import ValidationError
+from datetime import date
 from .models import (
     Ocorrencia, EvolucaoTratamento, EvolucaoTratamentoHasTipoComplicacao,
     EvolucaoTratamentoHasTipoProcedimento, OcorrenciaHasTipoParteAtingida,
@@ -202,6 +204,62 @@ class OcorrenciaForm(ModelForm):
                 self.fields[field_name].queryset = model.objects.all()
         
         super().full_clean()
+    
+    def clean_data_notificacao(self):
+        """Valida que a data de notificação não seja no futuro"""
+        data = self.cleaned_data.get('data_notificacao')
+        if data and data > date.today():
+            raise ValidationError('A data de notificação não pode ser no futuro.')
+        return data
+    
+    def clean_data_acidente(self):
+        """Valida que a data do acidente não seja no futuro"""
+        data = self.cleaned_data.get('data_acidente')
+        if data and data > date.today():
+            raise ValidationError('A data do acidente não pode ser no futuro.')
+        return data
+    
+    def clean_data_cadastro(self):
+        """Valida que a data de cadastro não seja no futuro"""
+        data = self.cleaned_data.get('data_cadastro')
+        if data and data > date.today():
+            raise ValidationError('A data de cadastro não pode ser no futuro.')
+        return data
+    
+    def clean_data_nascimento(self):
+        """Valida que a data de nascimento não seja no futuro"""
+        data = self.cleaned_data.get('data_nascimento')
+        if data and data > date.today():
+            raise ValidationError('A data de nascimento não pode ser no futuro.')
+        return data
+    
+    def clean_data_investigacao(self):
+        """Valida que a data de investigação não seja no futuro"""
+        data = self.cleaned_data.get('data_investigacao')
+        if data and data > date.today():
+            raise ValidationError('A data de investigação não pode ser no futuro.')
+        return data
+    
+    def clean_data_atendimento(self):
+        """Valida que a data de atendimento não seja no futuro"""
+        data = self.cleaned_data.get('data_atendimento')
+        if data and data > date.today():
+            raise ValidationError('A data de atendimento não pode ser no futuro.')
+        return data
+    
+    def clean_data_transferencia(self):
+        """Valida que a data de transferência não seja no futuro"""
+        data = self.cleaned_data.get('data_transferencia')
+        if data and data > date.today():
+            raise ValidationError('A data de transferência não pode ser no futuro.')
+        return data
+    
+    def clean_data_cadastro_atendimento(self):
+        """Valida que a data de cadastro do atendimento não seja no futuro"""
+        data = self.cleaned_data.get('data_cadastro_atendimento')
+        if data and data > date.today():
+            raise ValidationError('A data de cadastro do atendimento não pode ser no futuro.')
+        return data
 
 
 
@@ -296,6 +354,41 @@ class EvolucaoTratamentoForm(ModelForm):
                 self.fields[field_name].queryset = model.objects.all()
         
         super().full_clean()
+    
+    def clean_data_entrada(self):
+        """Valida que a data de entrada não seja no futuro"""
+        data = self.cleaned_data.get('data_entrada')
+        if data and data > date.today():
+            raise ValidationError('A data de entrada não pode ser no futuro.')
+        return data
+    
+    def clean_data_entrada_espaco_acolher(self):
+        """Valida que a data de entrada no espaço acolher não seja no futuro"""
+        data = self.cleaned_data.get('data_entrada_espaco_acolher')
+        if data and data > date.today():
+            raise ValidationError('A data de entrada no espaço acolher não pode ser no futuro.')
+        return data
+    
+    def clean_data_saida_espaco_acolher(self):
+        """Valida que a data de saída do espaço acolher não seja no futuro"""
+        data = self.cleaned_data.get('data_saida_espaco_acolher')
+        if data and data > date.today():
+            raise ValidationError('A data de saída do espaço acolher não pode ser no futuro.')
+        return data
+    
+    def clean_data_obito(self):
+        """Valida que a data de óbito não seja no futuro"""
+        data = self.cleaned_data.get('data_obito')
+        if data and data > date.today():
+            raise ValidationError('A data de óbito não pode ser no futuro.')
+        return data
+    
+    def clean_data_encerramento(self):
+        """Valida que a data de encerramento não seja no futuro"""
+        data = self.cleaned_data.get('data_encerramento')
+        if data and data > date.today():
+            raise ValidationError('A data de encerramento não pode ser no futuro.')
+        return data
 
 # Formsets para relações Many-to-Many
 EvolucaoTratamentoComplicacaoFormSet = inlineformset_factory(
