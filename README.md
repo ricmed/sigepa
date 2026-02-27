@@ -1,4 +1,4 @@
-# SIGEPA - Sistema Integrado de Gestão de Processos Administrativos
+# SIGEPA - Sistema Integrado de Gestão de Casos de Escalpelamento
 
 Sistema web desenvolvido em Django seguindo as melhores práticas arquiteturais para aplicações escaláveis e manuteníveis.
 
