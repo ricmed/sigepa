@@ -2,6 +2,7 @@
 Configurações para produção.
 """
 from .base import *
+from .base import env, LOGGING
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
