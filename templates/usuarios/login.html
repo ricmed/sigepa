@@ -1,53 +1,202 @@
 {% extends 'base.html' %}
 
-{% block title %}Login - SIGEPA{% endblock %}
+{% block title %}Entrar - SIGEPA{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-4 mx-auto">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Entrar</h3>
+<style>
+    /* Estilos do Formulário de Login (Design Moderno & Clean) */
+    .login-wrapper {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-card {
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        /* Sombra mais difusa e moderna */
+        border: none;
+        width: 100%;
+        max-width: 450px;
+        /* Largura focada para leitura */
+        background-color: #fff;
+    }
+
+    .login-card .card-header {
+        background: transparent;
+        border-bottom: none;
+        padding-top: 2.5rem;
+    }
+
+    .login-card .card-body {
+        padding: 2.5rem;
+        padding-top: 1rem;
+    }
+
+    .brand-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: white;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+    }
+
+    /* Input Group para Senhas */
+    .password-wrapper {
+        position: relative;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        color: #6c757d;
+        cursor: pointer;
+        padding: 0;
+        z-index: 10;
+    }
+
+    .password-toggle:focus {
+        outline: none;
+    }
+
+    /* Estilização nativa dos campos Django */
+    .login-card input[type="text"],
+    .login-card input[type="email"],
+    .login-card input[type="password"] {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        background-color: #f8f9fa;
+        /* Fundo cinza bem sutil pro destaque interno */
+    }
+
+    .login-card input:focus {
+        border-color: #86b7fe;
+        background-color: #fff;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .login-card label {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .btn-login {
+        padding: 0.75rem;
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        letter-spacing: 0.5px;
+        margin-top: 1.5rem;
+    }
+</style>
+
+<div class="container-fluid login-wrapper bg-light">
+    <div class="card login-card">
+
+        <div class="card-header text-center pb-0">
+            <div class="brand-icon">S</div>
+            <h4 class="card-title fw-bold text-dark mb-1">Bem-vindo de volta</h4>
+            <p class="text-muted small">Insira suas credenciais para acessar o SIGEPA</p>
+        </div>
+
+        <div class="card-body">
+            <!-- Exibição de erros de formulário não vinculados a campos específicos -->
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger border-0 rounded-3 shadow-sm py-2 px-3 mb-4">
+                <strong class="d-block mb-1"><i class="fas fa-exclamation-circle me-1"></i> Acesso Negado</strong>
+                <ul class="mb-0 ps-3 small">
+                    {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
             </div>
-            <div class="card-body">
-                {% if form.errors %}
-                    <div class="alert alert-danger">
-                        <strong>Erro:</strong>
-                        {% for field, errors in form.errors.items %}
-                            {% for error in errors %}
-                                <div>{{ error }}</div>
-                            {% endfor %}
-                        {% endfor %}
-                    </div>
-                {% endif %}
-                
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.username.id_for_label }}" class="form-label">Nome de usuário</label>
-                        {{ form.username }}
-                        {% if form.username.errors %}
-                            <div class="text-danger">{{ form.username.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.password.id_for_label }}" class="form-label">Senha</label>
-                        {{ form.password }}
-                        {% if form.password.errors %}
-                            <div class="text-danger">{{ form.password.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary w-100">Entrar</button>
-                </form>
-                
-                <div class="text-center mt-3">
-                    <p>Não tem uma conta? <a href="{% url 'usuarios:register' %}">Registre-se</a></p>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="{{ form.username.id_for_label }}" class="form-label">Usuário</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                    <div class="text-danger small mt-1">{{ form.username.errors }}</div>
+                    {% endif %}
                 </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label for="{{ form.password.id_for_label }}" class="form-label mb-0">Senha</label>
+                        <!-- Um link placeholder para "Esqueceu a senha?" se precisarem depois: -->
+                        <!-- <a href="#" class="small text-decoration-none">Esqueceu a senha?</a> -->
+                    </div>
+                    <div class="password-wrapper">
+                        {{ form.password }}
+                        <button type="button" class="password-toggle" data-target="{{ form.password.id_for_label }}">
+                            <i class="far fa-eye"></i>
+                        </button>
+                    </div>
+                    {% if form.password.errors %}
+                    <div class="text-danger small mt-1">{{ form.password.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 btn-login shadow-sm">
+                    <i class="fas fa-sign-in-alt me-2"></i>Entrar
+                </button>
+            </form>
+
+            <div class="text-center mt-4">
+                <p class="text-muted small mb-0">Não tem uma conta?
+                    <a href="{% url 'usuarios:register' %}" class="fw-bold text-decoration-none">Registre-se</a>
+                </p>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Script simples para a feature de Visualizar Senha
+        const toggleButtons = document.querySelectorAll('.password-toggle');
+
+        toggleButtons.forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault(); // Prevenir submit caso seja <button> normal
+                const targetId = this.getAttribute('data-target');
+                const passwordInput = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    passwordInput.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

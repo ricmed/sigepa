@@ -3,89 +3,281 @@
 {% block title %}Registrar - SIGEPA{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-6 mx-auto">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Criar Conta</h3>
+<style>
+    /* Estilos compartilhados com o Login */
+    .register-wrapper {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+    }
+
+    .register-card {
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        border: none;
+        width: 100%;
+        background-color: #fff;
+    }
+
+    .register-card .card-header {
+        background: transparent;
+        border-bottom: none;
+        padding-top: 2rem;
+    }
+
+    .register-card .card-body {
+        padding: 2rem;
+        padding-top: 0.5rem;
+    }
+
+    .brand-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: white;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 0 auto 1.2rem;
+        box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+    }
+
+    /* Estilização nativa dos campos Django */
+    .register-card input[type="text"],
+    .register-card input[type="email"],
+    .register-card input[type="password"],
+    .register-card input[type="date"],
+    .register-card input[type="number"],
+    .register-card input[type="tel"] {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        background-color: #f8f9fa;
+    }
+
+    .register-card input:focus {
+        border-color: #86b7fe;
+        background-color: #fff;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .register-card label {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0.4rem;
+        font-size: 0.9rem;
+    }
+
+    .btn-register {
+        padding: 0.75rem;
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        letter-spacing: 0.3px;
+        margin-top: 1rem;
+    }
+
+    /* Input Group para Senhas */
+    .password-wrapper {
+        position: relative;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        color: #6c757d;
+        cursor: pointer;
+        padding: 0;
+        z-index: 10;
+    }
+
+    .password-toggle:focus {
+        outline: none;
+    }
+</style>
+
+<div class="container-fluid register-wrapper bg-light">
+    <div class="col-md-8 col-lg-6 mx-auto">
+        <div class="card register-card">
+
+            <div class="card-header text-center pb-0">
+                <div class="brand-icon">S</div>
+                <h4 class="card-title fw-bold text-dark mb-1">Crie sua Conta</h4>
+                <p class="text-muted small">Preencha os dados abaixo para acessar o SIGEPA</p>
             </div>
+
             <div class="card-body">
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger border-0 rounded-3 shadow-sm py-2 px-3 mb-4">
+                    <strong class="d-block mb-1"><i class="fas fa-exclamation-circle me-1"></i> Ops!</strong>
+                    <ul class="mb-0 ps-3 small">
+                        {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
                 <form method="post">
                     {% csrf_token %}
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.first_name.id_for_label }}" class="form-label">Nome</label>
                             {{ form.first_name }}
                             {% if form.first_name.errors %}
-                                <div class="text-danger">{{ form.first_name.errors }}</div>
+                            <div class="text-danger small mt-1">{{ form.first_name.errors }}</div>
                             {% endif %}
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.last_name.id_for_label }}" class="form-label">Sobrenome</label>
                             {{ form.last_name }}
                             {% if form.last_name.errors %}
-                                <div class="text-danger">{{ form.last_name.errors }}</div>
+                            <div class="text-danger small mt-1">{{ form.last_name.errors }}</div>
                             {% endif %}
                         </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.username.id_for_label }}" class="form-label">Nome de usuário</label>
-                        {{ form.username }}
-                        {% if form.username.errors %}
-                            <div class="text-danger">{{ form.username.errors }}</div>
-                        {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">Nome de usuário</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                            <div class="text-danger small mt-1">{{ form.username.errors }}</div>
+                            {% endif %}
+                            <div class="form-text small text-muted mt-1">{{ form.username.help_text }}</div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                            <div class="text-danger small mt-1">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
-                        {{ form.email }}
-                        {% if form.email.errors %}
-                            <div class="text-danger">{{ form.email.errors }}</div>
-                        {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.telefone.id_for_label }}" class="form-label">Telefone</label>
+                            {{ form.telefone }}
+                            {% if form.telefone.errors %}
+                            <div class="text-danger small mt-1">{{ form.telefone.errors }}</div>
+                            {% endif %}
+                            <div class="form-text small text-muted mt-1">Ex: (11) 98765-4321</div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.data_nascimento.id_for_label }}" class="form-label">Data de
+                                Nascimento</label>
+                            {{ form.data_nascimento }}
+                            {% if form.data_nascimento.errors %}
+                            <div class="text-danger small mt-1">{{ form.data_nascimento.errors }}</div>
+                            {% endif %}
+                        </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.telefone.id_for_label }}" class="form-label">Telefone</label>
-                        {{ form.telefone }}
-                        {% if form.telefone.errors %}
-                            <div class="text-danger">{{ form.telefone.errors }}</div>
-                        {% endif %}
+
+                    <div class="row border-top pt-3 mt-2">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.password1.id_for_label }}" class="form-label">Senha</label>
+                            <div class="password-wrapper">
+                                {{ form.password1 }}
+                                <button type="button" class="password-toggle"
+                                    data-target="{{ form.password1.id_for_label }}">
+                                    <i class="far fa-eye"></i>
+                                </button>
+                            </div>
+                            {% if form.password1.errors %}
+                            <div class="text-danger small mt-1">{{ form.password1.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.password2.id_for_label }}" class="form-label">Confirmar Senha</label>
+                            <div class="password-wrapper">
+                                {{ form.password2 }}
+                                <button type="button" class="password-toggle"
+                                    data-target="{{ form.password2.id_for_label }}">
+                                    <i class="far fa-eye"></i>
+                                </button>
+                            </div>
+                            {% if form.password2.errors %}
+                            <div class="text-danger small mt-1">{{ form.password2.errors }}</div>
+                            {% endif %}
+                        </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.data_nascimento.id_for_label }}" class="form-label">Data de Nascimento</label>
-                        {{ form.data_nascimento }}
-                        {% if form.data_nascimento.errors %}
-                            <div class="text-danger">{{ form.data_nascimento.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.password1.id_for_label }}" class="form-label">Senha</label>
-                        {{ form.password1 }}
-                        {% if form.password1.errors %}
-                            <div class="text-danger">{{ form.password1.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.password2.id_for_label }}" class="form-label">Confirmar Senha</label>
-                        {{ form.password2 }}
-                        {% if form.password2.errors %}
-                            <div class="text-danger">{{ form.password2.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary w-100">Registrar</button>
+
+                    {% if form.password1.help_text %}
+                    <div class="form-text small text-muted mb-3">{{ form.password1.help_text|safe }}</div>
+                    {% endif %}
+
+                    <button type="submit" class="btn btn-primary w-100 btn-register shadow-sm">
+                        <i class="fas fa-user-check me-2"></i>Finalizar Cadastro
+                    </button>
                 </form>
-                
-                <div class="text-center mt-3">
-                    <p>Já tem uma conta? <a href="{% url 'usuarios:login' %}">Faça login</a></p>
+
+                <div class="text-center mt-4">
+                    <p class="text-muted small mb-0">Já tem uma conta?
+                        <a href="{% url 'usuarios:login' %}" class="fw-bold text-decoration-none">Faça login</a>
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Adicionando a biblioteca Cleave.js via CDN para as máscaras profissionais -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cleave.js/1.6.0/cleave.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cleave.js/1.6.0/addons/cleave-phone.br.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Máscara de Telefone usando Cleave.js para o padrão Brasileiro
+        var phoneInput = document.getElementById('{{ form.telefone.id_for_label }}');
+        if (phoneInput) {
+            new Cleave(phoneInput, {
+                phone: true,
+                phoneRegionCode: 'BR',
+                delimiter: '-' // Formato gerado: (00) 00000-0000
+            });
+        }
+
+        // Script para a feature de Visualizar Senha
+        const toggleButtons = document.querySelectorAll('.password-toggle');
+
+        toggleButtons.forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault(); // Prevenir submit caso seja <button> normal
+                const targetId = this.getAttribute('data-target');
+                const passwordInput = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    passwordInput.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}
